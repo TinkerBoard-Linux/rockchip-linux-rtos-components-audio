@@ -1,0 +1,47 @@
+config COMPONENTS_AUDIO
+	bool "Enable Audio"
+	select DRIVER_AUDIO
+	default n
+	help
+	Select this option to enable Audio function and
+	show the submenu with Audio configuration choices.
+
+if COMPONENTS_AUDIO
+
+	config COMPONENTS_PLAYER
+		bool "Audio Player"
+		default n
+		help
+		select this option to enable audio player function
+
+	config COMPONENTS_RECORDER
+		bool "Audio Recorder"
+		default n
+		help
+		Select this option to enable Audio Recorder function
+
+	config AUDIO_DECODER_MP3
+		bool "Decoder: MP3"
+		default n
+		help
+		select this option to enable mp3 decoder function
+
+	config AUDIO_DECODER_AMR
+		bool "Decoder: AMR"
+		default n
+		help
+		select this option to enable amr decoder function
+
+	config AUDIO_ENCODER_AMR
+		bool "Encoder: AMR"
+		default n
+		help
+		select this option to enable amr encoder function
+
+	config AUDIO_ENCODER_SPEEX
+		bool "Encoder: SPEEX"
+		default n
+		help
+		select this option to enable speex encoder function
+
+endif #if COMPONENTS_AUDIO
