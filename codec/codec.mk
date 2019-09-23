@@ -15,7 +15,7 @@ MP3_DIRS = $(DECODE_PATH)/mp3
 ifeq ($(MP3_DIRS), $(wildcard $(MP3_DIRS)))
 MP3_INCLUDE_PATHS := \
 		-I"$(DECODE_PATH)/mp3" \
-		-I"$(DECODE_PATH)/../../audio_server" \
+		-I"$(DECODE_PATH)/../../" \
 		-I"$(DECODE_PATH)/../../dsp_include"
 LIBS_MP3_SRCS := $(foreach dir,$(MP3_DIRS),$(wildcard $(dir)/*.[cS] $(dir)/*.cpp))
 LIBS_MP3_NAME := $(LIBS_INSTALL_DIRS)/libmp3.a
@@ -41,7 +41,7 @@ AMR_DIRS := $(ENCODE_PATH)/amr/opencore-amr/amrnb \
 
 ifeq ($(AMR_DIRS), $(wildcard $(AMR_DIRS)))
 AMR_INCLUDE_PATHS := \
-	-I"$(DECODE_PATH)/../../audio_server" \
+	-I"$(DECODE_PATH)/../../" \
 	-I"$(ENCODE_PATH)/amr" \
 	-I"$(DECODE_PATH)/amr" \
 	-I"$(ENCODE_PATH)/amr/opencore-amr/opencore/codecs_v2/audio/gsm_amr/amr_nb/enc/include" \
