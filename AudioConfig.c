@@ -168,7 +168,7 @@ unsigned long audio_device_write(void *dev, char *data, unsigned long frames)
 
 unsigned long audio_device_read(void *dev, char *data, unsigned long frames)
 {
-    return rkdev_write(dev, 0, data, frames);
+    return rkdev_read(dev, 0, data, frames);
 }
 
 void audio_sleep(uint32_t ms)
