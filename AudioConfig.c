@@ -396,7 +396,16 @@ int audio_fopen(char *path, char *mode)
 int audio_fread(void *buffer, size_t size, size_t count, int stream)
 {
 #if defined(OS_IS_FREERTOS)
-    return  rkos_file_read(buffer, size, count, (HDC)stream);
+    int ret = 0;
+    if(stream == -1)
+    {
+        rk_printf("\naudio_file = %d", stream);
+        return 0;
+    }
+    ret = rkos_file_read(buffer, size, count, (HDC)stream);
+    if (ret <= 0)
+        return 0;
+    return ret;
 #else
     int data_len = size * count;
     int ret = 0;
