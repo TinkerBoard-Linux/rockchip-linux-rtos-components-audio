@@ -45,19 +45,19 @@
 
 #ifdef CONFIG_AUDIO_DECODER_MP3
 #define AUDIO_DECODER_MP3
+#include "mp3_hal.h"
 #endif
 #ifdef CONFIG_AUDIO_DECODER_AMR
 #define AUDIO_DECODER_AMR
+#include "codec/decode/amr/amr_dec_hal.h"
 #endif
 #ifdef CONFIG_AUDIO_ENCODER_AMR
 #define AUDIO_ENCODER_AMR
+#include "codec/encode/amr/amr_enc_hal.h"
 #endif
 #ifdef CONFIG_AUDIO_ENCODER_SPEEX
 #define AUDIO_ENCODER_SPEEX
 #endif
-#include "codec/encode/amr/amr_enc_hal.h"
-#include "codec/decode/amr/amr_dec_hal.h"
-#include "mp3_hal.h"
 
 #elif defined(__RT_THREAD__)
 #define OS_IS_RTTHREAD

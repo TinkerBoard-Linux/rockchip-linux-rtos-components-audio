@@ -10,6 +10,9 @@
 extern "C" {
 #endif
 
+#include "AudioConfig.h"
+
+#ifdef AUDIO_DECODER_MP3
 
 #define MP3_DECODE_FRAME_COUNT 2
 #define    MP3_ID3V2_HEADER_LENGHT (10)
@@ -33,8 +36,6 @@ extern "C" {
         .destroy = play_mp3_destroy_impl, \
     }
 #endif
-
-
 
 /*
  * ABcoreMp3.h
@@ -67,6 +68,16 @@ int play_mp3_init_impl(struct play_decoder *self, play_decoder_cfg_t *cfg);
 play_decoder_error_t play_mp3_process_impl(struct play_decoder *self);
 bool play_mp3_get_post_state_impl(struct play_decoder *self);
 void play_mp3_destroy_impl(struct play_decoder *self);
+#else
+
+#define DEFAULT_MP3_DECODER { \
+        .type = "null", \
+        .init = NULL, \
+        .process = NULL, \
+        .get_post_state = NULL, \
+        .destroy = NULL, \
+    }
+#endif
 
 #ifdef __cplusplus
 }
