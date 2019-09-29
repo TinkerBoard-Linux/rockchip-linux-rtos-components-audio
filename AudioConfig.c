@@ -97,7 +97,7 @@ void audio_free(void *ptr)
 
 void audio_free_uncache(void *ptr)
 {
-    rkos_memory_free(ptr);
+    rkos_memory_free_align(ptr);
 }
 
 void *audio_calloc(size_t nmemb, size_t size)
@@ -113,7 +113,7 @@ void *audio_realloc(void *ptr, size_t size)
 
 void *audio_malloc_uncache(size_t size)
 {
-    return rkos_memory_malloc_uncache(size);
+    return rkos_memory_malloc_align(size, 32);
 }
 
 static char *audio_device_name[AUDIO_DEV_MAX] =
@@ -121,7 +121,19 @@ static char *audio_device_name[AUDIO_DEV_MAX] =
     "sound0p",
     "sound0c",
     "sound1p",
-    "sound1c"
+    "sound1c",
+    "sound2p",
+    "sound2c",
+    "sound3p",
+    "sound3c",
+    "sound4p",
+    "sound4c",
+    "sound5p",
+    "sound5c",
+    "sound6p",
+    "sound6c",
+    "sound7p",
+    "sound7c",
 };
 
 static int audio_getid_frome_name(const char *dev_name)
