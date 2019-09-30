@@ -22,7 +22,7 @@ int capture_device_open_impl(struct capture_device *self, capture_device_cfg_t *
     config.period_size = cfg->frame_size;
     config.period_count = 4;
 
-    capture_handle = pcm_open(cfg->device_name, AUDIO_FLAG_RDONLY);
+    capture_handle = pcm_open(AUDIO_RECORDER_SOUND_CARD, AUDIO_FLAG_RDONLY);
     pcm_set_config(capture_handle, config);
 
     RK_AUDIO_LOG_D("Open Playback success.\n");
