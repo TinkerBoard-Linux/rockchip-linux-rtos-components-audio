@@ -11,6 +11,7 @@ int g_recordr_freq = 0;
 int g_wav_encode;
 static record_encoder_t *g_default_encoder = NULL;
 static record_encoder_cfg_t *encoder_cfg;
+extern struct wav_header m_wav_header;
 
 struct recorder
 {
@@ -46,6 +47,7 @@ struct recorder
     int samplerate;
     int bits;
     int channels;
+    long duration;
 };
 
 void recoder_freq_init(void)
@@ -103,6 +105,9 @@ void write_run(void *data)
     record_writer_cfg_t processor_cfg;
     int res;
     char *read_buf;
+    char *temp_buf;
+    long temp_count;
+    long temp_size;
     size_t read_size = 0;
     size_t frame_size = 0;
     RK_AUDIO_LOG_D("in\n");
@@ -124,6 +129,15 @@ void write_run(void *data)
         processor_cfg.target = msg.recorder.target;
         processor_cfg.tag = recorder->tag;
         RK_AUDIO_LOG_D("writer init begin writer.type:%s\n", writer.type);
+        temp_size = recorder->samplerate * (recorder->bits >> 3) * recorder->channels * recorder->duration;
+        RK_AUDIO_LOG_E("malloc temp_buf %d.\n", temp_size);
+        temp_count = 0;
+        temp_buf = audio_malloc(temp_size);
+        if (!temp_buf)
+        {
+            RK_AUDIO_LOG_E("malloc temp_buf failed %d.\n", temp_size);
+            return;
+        }
         res = writer.init(&writer, &processor_cfg);
         RK_AUDIO_LOG_D("writer init after\n");
         frame_size = processor_cfg.frame_size;
@@ -165,10 +179,20 @@ void write_run(void *data)
                 {
                     break;
                 }
+                if (temp_count < temp_size)
+                {
+                    memcpy(temp_buf + temp_count, read_buf, read_size);
+                    temp_count += read_size;
+                }
                 //OS_LOG_D(recorder,"writer read_size:%d\n",read_size);
             }
-            while (writer.write(&writer, read_buf, read_size) != -1);
+            while (1);
+            // while (writer.write(&writer, read_buf, read_size) != -1);
+            if (g_wav_encode)
+                writer.write(&writer, (char *)&m_wav_header, sizeof(m_wav_header));
+            writer.write(&writer, temp_buf, temp_count);
             RK_AUDIO_LOG_D("write_stream was stopped");
+            audio_free(temp_buf);
             audio_free(read_buf);
             writer.destroy(&writer);
         }
@@ -249,7 +273,7 @@ void encoder_run(void *data)
                 wav_cfg.sample_rate = recorder->samplerate;
                 wav_cfg.bits = recorder->bits;
                 wav_cfg.channels = recorder->channels;
-                //rt_hw_cpu_dcache_ops(RT_HW_CACHE_FLUSH, recorder, sizeof(recorder));
+                rk_dcache_ops(RK_HW_CACHE_CLEAN, recorder, sizeof(recorder));
                 encoder.userdata = &wav_cfg;
                 g_wav_encode = 1;
             }
@@ -388,7 +412,7 @@ void capture_run(void *data)
                 memset(read_buf, 0, frame_size);
                 while (1)
                 {
-                    // OS_LOG_D(recorder,"audio_stream_read frame_size:%d\n",frame_size);
+                    // RK_AUDIO_LOG_D("audio_stream_read frame_size:%d\n",frame_size);
                     read_size = device.read(&device, read_buf, frame_size);
                     if (read_size == -1)
                     {
@@ -465,10 +489,10 @@ recorder_handle_t recorder_create(recorder_cfg_t *cfg)
         recorder->write_task = audio_thread_create("write_task", 1024, 28, &c);
         c.run = encoder_run;
         c.args = recorder;
-        recorder->encode_task = audio_thread_create("encode_task", 256, 28, &c);
+        recorder->encode_task = audio_thread_create("encode_task", 2048, 28, &c);
         c.run = capture_run;
         c.args = recorder;
-        recorder->record_task = audio_thread_create("record_task", 256, 28, &c);
+        recorder->record_task = audio_thread_create("record_task", 1024, 28, &c);
     }
     RK_AUDIO_LOG_D("recorder_create out");
     return recorder;
@@ -491,12 +515,27 @@ int recorder_record(recorder_handle_t self, record_cfg_t *cfg)
     recorder->samplerate = cfg->samplerate;
     recorder->bits = cfg->bits;
     recorder->channels = cfg->channels;
+    recorder->duration = cfg->duration;
     msg.type = CMD_RECORDER_START;
     msg.recorder.mode = RECORD_MODE_PROMPT;
-    msg.recorder.target = cfg->target;
     msg.recorder.type = cfg->type;
     msg.recorder.writer = cfg->writer;
     msg.recorder.need_free = cfg->need_free;
+    if (cfg->need_free)
+    {
+        msg.recorder.target = audio_malloc(strlen(cfg->target) + 1);
+        if (msg.recorder.target == NULL)
+        {
+            RK_AUDIO_LOG_V("no mem!");
+            return RK_AUDIO_FAILURE;
+        }
+        memcpy(msg.recorder.target, cfg->target, strlen(cfg->target));
+    }
+    else
+    {
+        msg.recorder.target = cfg->target;
+    }
+
     msg.recorder.end_session = false;
     RK_AUDIO_LOG_D("msg.type =%x, %d,", &msg.type, msg.type);
     audio_queue_send(recorder->record_queue, &msg);
