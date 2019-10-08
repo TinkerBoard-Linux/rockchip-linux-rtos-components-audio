@@ -15,24 +15,6 @@
 
 #if defined(__RK_OS__)
 #define OS_IS_FREERTOS
-#define RK_AUDIO_SUCCESS            RK_SUCCESS
-#define RK_AUDIO_FAILURE            RK_ERROR
-#define AUDIO_FLAG_RDONLY           READ_ONLY
-#define AUDIO_FLAG_WRONLY           WRITE_ONLY
-#define AUDIO_FLAG_RDWR             READ_WRITE
-#define AUDIO_TICK_PER_SEC          CONFIG_FREERTOS_TICK_HZ
-#define AUDIO_TIMER_PERIOD          1
-#define AUDIO_TIMER_ONCE            0
-#ifdef CONFIG_COMPONENTS_PLAYER_SOUND_CARD
-#define AUDIO_PLAYER_SOUND_CARD     CONFIG_COMPONENTS_PLAYER_SOUND_CARD
-#else
-#define AUDIO_PLAYER_SOUND_CARD     "sound0p"
-#endif
-#ifdef CONFIG_COMPONENTS_RECORDER_SOUND_CARD
-#define AUDIO_RECORDER_SOUND_CARD   CONFIG_COMPONENTS_RECORDER_SOUND_CARD
-#else
-#define AUDIO_RECORDER_SOUND_CARD   "sound0c"
-#endif
 
 #include "BspConfig.h"
 #include "rkos_typedef.h"
@@ -52,6 +34,25 @@
 #include "driver/rk_audio.h"
 #include "driver/rk_cache.h"
 #include "hal_base.h"
+
+#define RK_AUDIO_SUCCESS            RK_SUCCESS
+#define RK_AUDIO_FAILURE            RK_ERROR
+#define AUDIO_FLAG_RDONLY           READ_ONLY
+#define AUDIO_FLAG_WRONLY           WRITE_ONLY
+#define AUDIO_FLAG_RDWR             READ_WRITE
+#define AUDIO_TICK_PER_SEC          CONFIG_FREERTOS_TICK_HZ
+#define AUDIO_TIMER_PERIOD          1
+#define AUDIO_TIMER_ONCE            0
+#ifdef CONFIG_COMPONENTS_PLAYER_SOUND_CARD
+#define AUDIO_PLAYER_SOUND_CARD     CONFIG_COMPONENTS_PLAYER_SOUND_CARD
+#else
+#define AUDIO_PLAYER_SOUND_CARD     "sound0p"
+#endif
+#ifdef CONFIG_COMPONENTS_RECORDER_SOUND_CARD
+#define AUDIO_RECORDER_SOUND_CARD   CONFIG_COMPONENTS_RECORDER_SOUND_CARD
+#else
+#define AUDIO_RECORDER_SOUND_CARD   "sound0c"
+#endif
 
 #ifdef CONFIG_AUDIO_DECODER_MP3
 #define AUDIO_DECODER_MP3
