@@ -25,7 +25,7 @@ int capture_device_open_impl(struct capture_device *self, capture_device_cfg_t *
     capture_handle = pcm_open(AUDIO_RECORDER_SOUND_CARD, AUDIO_FLAG_RDONLY);
     pcm_set_config(capture_handle, config);
 
-    RK_AUDIO_LOG_D("Open Playback success.\n");
+    RK_AUDIO_LOG_D("Open Capture success.\n");
 
     return RK_AUDIO_SUCCESS;
 }
