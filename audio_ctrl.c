@@ -152,6 +152,7 @@ int AudioSendMsg(audio_data_type id, MSGBOX_SYSTEM_CMD mesg)
         RK_AUDIO_LOG_E("AudioSendMsg error.");
         break;
     }
+    g_BcoreRetval = ret;
     return ret;
 #else      /* -----  not RK_AUDIO_CODEC_RUN_ON_M4  ----- */
     rk_err_t ret = RK_AUDIO_SUCCESS;
@@ -170,7 +171,10 @@ int AudioSendMsg(audio_data_type id, MSGBOX_SYSTEM_CMD mesg)
             work_gp->param_size = sizeof(g_ABCoreDat);
         }
         if (g_DSPDevHandle == NULL || work_gp == NULL)
-            return -1;
+        {
+            ret = -1;
+            break;
+        }
         printf("Loading dsp ...");
     case MEDIA_MSGBOX_CMD_ENCODE:
     case MEDIA_MSGBOX_CMD_DECODE:
@@ -194,8 +198,10 @@ int AudioSendMsg(audio_data_type id, MSGBOX_SYSTEM_CMD mesg)
         break;
     default:
         printf("AudioSendMsg error.");
-        return -1;
+        ret = -1;
+        break;
     }
+    g_BcoreRetval = ret;
     return ret;
 #endif     /* -----  end of RK_AUDIO_CODEC_RUN_ON_M4  ----- */
 }
