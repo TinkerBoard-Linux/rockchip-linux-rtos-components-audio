@@ -6,8 +6,6 @@
 
 #include "AudioConfig.h"
 
-extern struct wav_header m_wav_header;
-extern int g_wav_encode;
 int file_writer_init_impl(struct record_writer *self,
                           record_writer_cfg_t *cfg)
 {
@@ -41,10 +39,5 @@ void file_writer_destroy_impl(struct record_writer *self)
 
     int fd = (int)self->userdata;
 
-    if (g_wav_encode)
-    {
-        audio_fseek(fd, 0, SEEK_SET);
-        audio_fwrite((char *)&m_wav_header, 1, sizeof(m_wav_header), fd);
-    }
     audio_fclose(fd);
 }
