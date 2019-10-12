@@ -37,6 +37,8 @@ static int check_http_audio_type(char *target, char **type)
     return RK_AUDIO_SUCCESS;
 }
 
+extern int music_need_seek;
+extern long music_seek;
 int http_preprocessor_init_impl(struct play_preprocessor *self,
                                 play_preprocessor_cfg_t *cfg)
 {
@@ -46,9 +48,20 @@ int http_preprocessor_init_impl(struct play_preprocessor *self,
 
     response = (char *) audio_malloc(mem_size * sizeof(char));
     http_socket = -1;
-    if (http_open(cfg->target, response, &http_socket) != HTTP_STATUS_OK)
+    if (music_need_seek)
     {
-        goto END;
+        if (http_open(cfg->target, response, &http_socket, HTTP_GET, NULL, music_seek) != HTTP_STATUS_OK)
+        {
+            goto END;
+        }
+        music_need_seek = false;
+    }
+    else
+    {
+        if (http_open(cfg->target, response, &http_socket, HTTP_GET, NULL, 0) != HTTP_STATUS_OK)
+        {
+            goto END;
+        }
     }
 
     g_is_chunked = RK_AUDIO_FAIL;
