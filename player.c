@@ -747,7 +747,7 @@ player_handle_t player_create(player_cfg_t *cfg)
         player->decode_task = audio_thread_create("decode_task", 2048, 28, &c);
         c.run = (void *)playback_run;
         c.args = player;
-        player->play_task = audio_thread_create("play_task", 1024, 28, &c);
+        player->play_task = audio_thread_create("play_task", 2048, 28, &c);
     }
     RK_AUDIO_LOG_D("out");
     return player;
