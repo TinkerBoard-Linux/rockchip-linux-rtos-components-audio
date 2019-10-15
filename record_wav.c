@@ -52,25 +52,25 @@ record_encoder_error_t record_wav_process(struct record_encoder *self)
             RK_AUDIO_LOG_W("wav->input finish \n");
             wav_header_complete(&m_wav_header, total_byte);
             wav->output(wav->userdata, (char *)&m_wav_header, sizeof(m_wav_header));
-            return 0;
+            return RECORD_ENCODER_SUCCESS;
         }
         else if (read_bytes == -1)
         {
             RK_AUDIO_LOG_E("wav->input failed \n");
             wav_header_complete(&m_wav_header, total_byte);
             wav->output(wav->userdata, (char *)&m_wav_header, sizeof(m_wav_header));
-            return -1;
+            return RECORD_ENCODER_INPUT_ERROR;
         }
         int write_bytes = wav->output(wav->userdata, wav->read_buf, read_bytes);
         total_byte += write_bytes;
         if (write_bytes == -1)
         {
             RK_AUDIO_LOG_E("wav->output failed \n");
-            return -1;
+            return RECORD_ENCODER_OUTPUT_ERROR;
         }
     }
 
-    return 0;
+    return RECORD_ENCODER_SUCCESS;
 }
 
 bool record_wav_get_post_state(struct record_encoder *self)

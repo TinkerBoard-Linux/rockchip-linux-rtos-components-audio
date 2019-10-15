@@ -41,21 +41,21 @@ record_encoder_error_t record_pcm_process(struct record_encoder *self)
         if (read_bytes == 0)
         {
             RK_AUDIO_LOG_D("pcm->input finish \n");
-            return RK_AUDIO_SUCCESS;
+            return RECORD_ENCODER_SUCCESS;
         }
         else if (read_bytes == -1)
         {
             RK_AUDIO_LOG_D("pcm->input failed \n");
-            return RK_AUDIO_FAILURE;
+            return RECORD_ENCODER_INPUT_ERROR;
         }
         int write_bytes = pcm->output(pcm->userdata, pcm->read_buf, read_bytes);
         if (write_bytes == -1)
         {
             RK_AUDIO_LOG_D("pcm->output failed \n");
-            return RK_AUDIO_FAILURE;
+            return RECORD_ENCODER_OUTPUT_ERROR;
         }
     }
-    return RK_AUDIO_SUCCESS;
+    return RECORD_ENCODER_SUCCESS;
 }
 
 bool record_pcm_get_post_state(struct record_encoder *self)

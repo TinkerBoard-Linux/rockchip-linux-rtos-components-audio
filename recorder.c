@@ -310,21 +310,18 @@ void encoder_run(void *data)
             {
             case RECORD_ENCODER_INPUT_ERROR:
                 RK_AUDIO_LOG_D("record_encoder_INPUT_ERROR\n");
+                audio_stream_stop(recorder->encode_stream);
                 break;
             case RECORD_ENCODER_OUTPUT_ERROR:
                 RK_AUDIO_LOG_D("record_encoder_OUTPUT_ERROR\n");
                 audio_stream_stop(recorder->record_stream);
-                if (!encoder.get_post_state(&encoder))
+                audio_mutex_lock(recorder->state_lock);
+                recorder->state = recorder_STATE_IDLE;
+                if (recorder->listen)
                 {
-                    audio_mutex_lock(recorder->state_lock);
-                    recorder->state = recorder_STATE_IDLE;
-                    if (recorder->listen)
-                    {
-                        recorder->listen(recorder, RECORD_INFO_ENCODE, recorder->userdata);
-                    }
-                    audio_mutex_unlock(recorder->state_lock);
-                    goto _DESTROY_encoder;
+                    recorder->listen(recorder, RECORD_INFO_ENCODE, recorder->userdata);
                 }
+                audio_mutex_unlock(recorder->state_lock);
                 goto _DESTROY_encoder;
             case RECORD_ENCODER_ENCODE_ERROR:
                 RK_AUDIO_LOG_D("record_encoder_encode_ERROR\n");
@@ -337,16 +334,13 @@ void encoder_run(void *data)
                 goto _DESTROY_encoder;
                 break;
             }
-            if (!encoder.get_post_state(&encoder))
+            audio_mutex_lock(recorder->state_lock);
+            recorder->state = recorder_STATE_IDLE;
+            if (recorder->listen)
             {
-                audio_mutex_lock(recorder->state_lock);
-                recorder->state = recorder_STATE_IDLE;
-                if (recorder->listen)
-                {
-                    recorder->listen(recorder, RECORD_INFO_ENCODE, recorder->userdata);
-                }
-                audio_mutex_unlock(recorder->state_lock);
+                recorder->listen(recorder, RECORD_INFO_ENCODE, recorder->userdata);
             }
+            audio_mutex_unlock(recorder->state_lock);
 _DESTROY_encoder:
             RK_AUDIO_LOG_D("encoder process return value:%d\n", encode_res);
             encoder.destroy(&encoder);
