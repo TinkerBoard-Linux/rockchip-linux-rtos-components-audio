@@ -44,6 +44,25 @@ typedef struct
     int process_num;
 } SRCState;
 
+#define _8K_TO_16K      0x00020000
+#define _11K_TO_16K     0x00017384
+#define _22K_TO_16K     0x0000b9c2
+#define _24K_TO_16K     0x0000aaaa
+#define _32K_TO_16K     0x00008000
+#define _44K_TO_16K     0x00005CE1
+#define _48K_TO_16K     0x00005555
+#define _8K_TO_44K      0x00058333
+#define _11K_TO_44K     0x00040000
+#define _16K_TO_44K     0x0002c199
+#define _32K_TO_44K     0x000160cc
+#define _48K_TO_44K     0x0000eb33
+#define _8K_TO_48K      0x00060000
+#define _11K_TO_48K     0x00045a8e
+#define _16K_TO_48K     0x00030000
+#define _22K_TO_48K     0x00022d47
+#define _32K_TO_48K     0x00018000
+#define _44K_TO_48K     0x000116a3
+
 //****************************************************************************
 //
 // Function prototypes.

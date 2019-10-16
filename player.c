@@ -270,7 +270,7 @@ __PREPROCESS_OUT:
 static SRCState *g_pSRC = NULL;
 static int g_is_need_resample = 0;
 static char *g_resample_buffer;
-#define MAX_RESAMPLE_BUFFER_SIZE (4608)
+#define MAX_RESAMPLE_BUFFER_SIZE (7168)
 
 int decoder_input(void *userdata, char *data, size_t data_len)
 {

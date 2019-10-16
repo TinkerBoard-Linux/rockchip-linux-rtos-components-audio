@@ -21,6 +21,17 @@
 #include "dsp_include/filt_24k_to_16k.h"
 #include "dsp_include/filt_48kto16k.h"
 #include "dsp_include/filt_11k_to_16k.h"
+#include "dsp_include/8k_to_44k.h"
+#include "dsp_include/8k_to_48k.h"
+#include "dsp_include/11k_to_44k.h"
+#include "dsp_include/11k_to_48k.h"
+#include "dsp_include/16k_to_44k.h"
+#include "dsp_include/16k_to_48k.h"
+#include "dsp_include/22k_to_48k.h"
+#include "dsp_include/32k_to_44k.h"
+#include "dsp_include/32k_to_48k.h"
+#include "dsp_include/44k_to_48k.h"
+#include "dsp_include/48k_to_44k.h"
 
 //****************************************************************************
 //
@@ -43,22 +54,11 @@ int SRCInit(SRCState *pSRC, unsigned long ulInputRate, unsigned long ulOutputRat
     lastSampleRight = 0;
     pSRC->last_sample_num = 0;
     pSRC->process_num = 160;
-    if (0x20000 == ((ulOutputRate << 16) / ulInputRate))
-    {
-        NUMTAPS = 51;
-    }
-    else
-    {
-        NUMTAPS = 13;
-    }
-    RK_AUDIO_LOG_D("SRCInit:%d, NUMTAPS:%d\n", __LINE__, NUMTAPS);
-    memset((void *)pSRC->Left_right, 0, NUMTAPS * 4);
-    RK_AUDIO_LOG_D("0x%x\n", (int)((ulOutputRate << 16) / ulInputRate));
-    RK_AUDIO_LOG_D("ulOutputRate:%ld,ulInputRate:%ld\n", ulOutputRate, ulInputRate);
+
     switch ((ulOutputRate << 16) / ulInputRate)
     {
     //32k->16k
-    case 0x0008000:
+    case _32K_TO_16K:
     {
         RK_AUDIO_LOG_D("SRCInit :%d\n", __LINE__);
         lNumPolyPhases = SRCFilter_0_0005.sNumPolyPhases;
@@ -68,7 +68,7 @@ int SRCInit(SRCState *pSRC, unsigned long ulInputRate, unsigned long ulOutputRat
         break;
     }
     //44.1k->16k
-    case 0x00005CE1:
+    case _44K_TO_16K:
     {
         RK_AUDIO_LOG_D("SRCInit :%d\n", __LINE__);
         lNumPolyPhases = SRCFilter_0_3628.sNumPolyPhases;
@@ -78,7 +78,7 @@ int SRCInit(SRCState *pSRC, unsigned long ulInputRate, unsigned long ulOutputRat
         break;
     }
     //48k->16k
-    case 0x00005555:
+    case _48K_TO_16K:
     {
         RK_AUDIO_LOG_D("SRCInit :%d\n", __LINE__);
         lNumPolyPhases = SRCFilter_0_3333.sNumPolyPhases;
@@ -87,8 +87,8 @@ int SRCInit(SRCState *pSRC, unsigned long ulInputRate, unsigned long ulOutputRat
         pSRC->psFilter = (short *)SRCFilter_0_3333.sCoefs;
         break;
     }
-    // 8k->16k.
-    case 0x000020000:
+    // 8k->16k. 22k->44k
+    case _8K_TO_16K:
     {
         RK_AUDIO_LOG_D("SRCInit :%d\n", __LINE__);
         lNumPolyPhases = SRCFilter_2_0.sNumPolyPhases;
@@ -99,7 +99,7 @@ int SRCInit(SRCState *pSRC, unsigned long ulInputRate, unsigned long ulOutputRat
     }
 
     //22k->16k
-    case 0x0000b9c2:
+    case _22K_TO_16K:
     {
         RK_AUDIO_LOG_D("SRCInit :%d\n", __LINE__);
         lNumPolyPhases = SRCFilter_0_7256.sNumPolyPhases;
@@ -109,7 +109,7 @@ int SRCInit(SRCState *pSRC, unsigned long ulInputRate, unsigned long ulOutputRat
         break;
     }
     //24k->16k
-    case 0x0000aaaa:
+    case _24K_TO_16K:
     {
         RK_AUDIO_LOG_D("SRCInit :%d\n", __LINE__);
         lNumPolyPhases = SRCFilter_0_6666.sNumPolyPhases;
@@ -119,7 +119,7 @@ int SRCInit(SRCState *pSRC, unsigned long ulInputRate, unsigned long ulOutputRat
         break;
     }
     //11k->16k
-    case 0x00017384:
+    case _11K_TO_16K:
     {
         RK_AUDIO_LOG_D("SRCInit :%d\n", __LINE__);
         lNumPolyPhases = SRCFilter_1_4512.sNumPolyPhases;
@@ -128,17 +128,133 @@ int SRCInit(SRCState *pSRC, unsigned long ulInputRate, unsigned long ulOutputRat
         pSRC->psFilter = (short *)SRCFilter_1_4512.sCoefs;
         break;
     }
+    //8k->44k
+    case _8K_TO_44K:
+    {
+        RK_AUDIO_LOG_D("SRCInit :%d\n", __LINE__);
+        lNumPolyPhases = SRCFilter_5_5125.sNumPolyPhases;
+        lNumTaps = SRCFilter_5_5125.sNumTaps;
+        lSampleIncrement = SRCFilter_5_5125.sSampleIncrement;
+        pSRC->psFilter = (short *)SRCFilter_5_5125.sCoefs;
+        break;
+    }
+    //11k->44k
+    case _11K_TO_44K:
+    {
+        RK_AUDIO_LOG_D("SRCInit :%d\n", __LINE__);
+        lNumPolyPhases = SRCFilter_4_0000.sNumPolyPhases;
+        lNumTaps = SRCFilter_4_0000.sNumTaps;
+        lSampleIncrement = SRCFilter_4_0000.sSampleIncrement;
+        pSRC->psFilter = (short *)SRCFilter_4_0000.sCoefs;
+        break;
+    }
+    //16k->44k
+    case _16K_TO_44K:
+    {
+        RK_AUDIO_LOG_D("SRCInit :%d\n", __LINE__);
+        lNumPolyPhases = SRCFilter_2_7562.sNumPolyPhases;
+        lNumTaps = SRCFilter_2_7562.sNumTaps;
+        lSampleIncrement = SRCFilter_2_7562.sSampleIncrement;
+        pSRC->psFilter = (short *)SRCFilter_2_7562.sCoefs;
+        break;
+    }
+    //32k->44k
+    case _32K_TO_44K:
+    {
+        RK_AUDIO_LOG_D("SRCInit :%d\n", __LINE__);
+        lNumPolyPhases = SRCFilter_1_3781.sNumPolyPhases;
+        lNumTaps = SRCFilter_1_3781.sNumTaps;
+        lSampleIncrement = SRCFilter_1_3781.sSampleIncrement;
+        pSRC->psFilter = (short *)SRCFilter_1_3781.sCoefs;
+        break;
+    }
+    //48k->44k
+    case _48K_TO_44K:
+    {
+        RK_AUDIO_LOG_D("SRCInit :%d\n", __LINE__);
+        lNumPolyPhases = SRCFilter_0_9187.sNumPolyPhases;
+        lNumTaps = SRCFilter_0_9187.sNumTaps;
+        lSampleIncrement = SRCFilter_0_9187.sSampleIncrement;
+        pSRC->psFilter = (short *)SRCFilter_0_9187.sCoefs;
+        break;
+    }
+    //8k->48k
+    case _8K_TO_48K:
+    {
+        RK_AUDIO_LOG_D("SRCInit :%d\n", __LINE__);
+        lNumPolyPhases = SRCFilter_6_0000.sNumPolyPhases;
+        lNumTaps = SRCFilter_6_0000.sNumTaps;
+        lSampleIncrement = SRCFilter_6_0000.sSampleIncrement;
+        pSRC->psFilter = (short *)SRCFilter_6_0000.sCoefs;
+        break;
+    }
+    //11k->48k
+    case _11K_TO_48K:
+    {
+        RK_AUDIO_LOG_D("SRCInit :%d\n", __LINE__);
+        lNumPolyPhases = SRCFilter_4_3537.sNumPolyPhases;
+        lNumTaps = SRCFilter_4_3537.sNumTaps;
+        lSampleIncrement = SRCFilter_4_3537.sSampleIncrement;
+        pSRC->psFilter = (short *)SRCFilter_4_3537.sCoefs;
+        break;
+    }
+    //16k->48k
+    case _16K_TO_48K:
+    {
+        RK_AUDIO_LOG_D("SRCInit :%d\n", __LINE__);
+        lNumPolyPhases = SRCFilter_3_0000.sNumPolyPhases;
+        lNumTaps = SRCFilter_3_0000.sNumTaps;
+        lSampleIncrement = SRCFilter_3_0000.sSampleIncrement;
+        pSRC->psFilter = (short *)SRCFilter_3_0000.sCoefs;
+        break;
+    }
+    //22k->48k
+    case _22K_TO_48K:
+    {
+        RK_AUDIO_LOG_D("SRCInit :%d\n", __LINE__);
+        lNumPolyPhases = SRCFilter_2_1768.sNumPolyPhases;
+        lNumTaps = SRCFilter_2_1768.sNumTaps;
+        lSampleIncrement = SRCFilter_2_1768.sSampleIncrement;
+        pSRC->psFilter = (short *)SRCFilter_2_1768.sCoefs;
+        break;
+    }
+    //32k->48k
+    case _32K_TO_48K:
+    {
+        RK_AUDIO_LOG_D("SRCInit :%d\n", __LINE__);
+        lNumPolyPhases = SRCFilter_1_5000.sNumPolyPhases;
+        lNumTaps = SRCFilter_1_5000.sNumTaps;
+        lSampleIncrement = SRCFilter_1_5000.sSampleIncrement;
+        pSRC->psFilter = (short *)SRCFilter_1_5000.sCoefs;
+        break;
+    }
+    //44k->48k
+    case _44K_TO_48K:
+    {
+        RK_AUDIO_LOG_D("SRCInit :%d\n", __LINE__);
+        lNumPolyPhases = SRCFilter_1_0884.sNumPolyPhases;
+        lNumTaps = SRCFilter_1_0884.sNumTaps;
+        lSampleIncrement = SRCFilter_1_0884.sSampleIncrement;
+        pSRC->psFilter = (short *)SRCFilter_1_0884.sCoefs;
+        break;
+    }
     default:
     {
         RK_AUDIO_LOG_D("SRCInit :%d\n", __LINE__);
+        RK_AUDIO_LOG_D("Not support this rate :%d %lx\n", ulInputRate, (ulOutputRate << 16) / ulInputRate);
         return (0);
     }
     }
+    RK_AUDIO_LOG_D("SRCInit:%d, NUMTAPS:%d ", __LINE__, NUMTAPS);
+    memset((void *)pSRC->Left_right, 0, NUMTAPS * 4);
+    RK_AUDIO_LOG_D("0x%x\n", (int)((ulOutputRate << 16) / ulInputRate));
+    RK_AUDIO_LOG_D("ulOutputRate:%ld,ulInputRate:%ld\n", ulOutputRate, ulInputRate);
 
     //
     // Make sure that the number of taps in the filter matches the number of
     // taps supported by our filtering code.
     //
+    NUMTAPS = lNumTaps;
     if (lNumTaps != NUMTAPS)
     {
         RK_AUDIO_LOG_D("SRCInit :%d\n", __LINE__);
