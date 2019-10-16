@@ -70,8 +70,19 @@ int pcm_set_config(struct pcm *pcm_dev, struct pcm_config config)
     pcm_dev->config = config;
     int ret;
     struct audio_buf *abuf = audio_malloc(sizeof(struct audio_buf));
+    if (!abuf)
+    {
+        RK_AUDIO_LOG_E("malloc failed %d", sizeof(struct audio_buf));
+        return RK_AUDIO_FAILURE;
+    }
+    pcm_dev->user_data = abuf;
 
     abuf->buf = (uint8_t *)audio_malloc_uncache(config.period_size * config.period_count);
+    if (!abuf->buf)
+    {
+        RK_AUDIO_LOG_E("unchache malloc failed %d", config.period_size * config.period_count);
+        return RK_AUDIO_FAILURE;
+    }
 
     memset(abuf->buf, 0x00, config.period_size * config.period_count);
     abuf->buf_size = m_bytes_to_frames(pcm_dev, config.period_size * config.period_count);
@@ -110,8 +121,12 @@ int pcm_stop(struct pcm *pcm_dev)
 
 int pcm_close(struct pcm *pcm_dev)
 {
-    audio_free_uncache(((struct audio_buf *)pcm_dev->user_data)->buf);
-    audio_free(pcm_dev->user_data);
+    if (pcm_dev->user_data)
+    {
+        if (((struct audio_buf *)pcm_dev->user_data)->buf)
+            audio_free_uncache(((struct audio_buf *)pcm_dev->user_data)->buf);
+        audio_free(pcm_dev->user_data);
+    }
     audio_device_close(pcm_dev->device);
     audio_free(pcm_dev);
 

@@ -27,7 +27,14 @@ int playback_device_open_impl(struct playback_device *self, playback_device_cfg_
 
     RK_AUDIO_LOG_V("rate:%d bits:%d ch:%d", config.rate, config.bits, config.channels);
     playback_handle = pcm_open(AUDIO_PLAYER_SOUND_CARD, AUDIO_FLAG_WRONLY);
-    pcm_set_config(playback_handle, config);
+    if (!playback_handle)
+        return RK_AUDIO_FAILURE;
+    if (pcm_set_config(playback_handle, config))
+    {
+        pcm_close(playback_handle);
+        playback_handle = NULL;
+        return RK_AUDIO_FAILURE;
+    }
 
     RK_AUDIO_LOG_D("Open Playback success.");
 

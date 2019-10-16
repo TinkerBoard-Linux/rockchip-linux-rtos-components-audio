@@ -153,7 +153,7 @@ void *audio_device_open(const char *dev_name, int flag)
 {
     DEVICE_CLASS *audio_dev;
     int dev_id = audio_getid_frome_name(dev_name);
-    audio_dev = (DEVICE_CLASS *)rkdev_open(DEV_CLASS_AUDIO, dev_id, flag);
+    audio_dev = (DEVICE_CLASS *)rkdev_open(DEV_CLASS_AUDIO, dev_id, 0x00);
     if (audio_dev == NULL)
     {
         RK_AUDIO_LOG_E("can not open audio device %s.\n", dev_name);
