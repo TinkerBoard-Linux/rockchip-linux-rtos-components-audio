@@ -1001,7 +1001,7 @@ int check_native_audio_type(char *target, char **type)
     RK_AUDIO_LOG_V("type is %s\n", *type);
 
     audio_file = audio_fopen(target, "rb");
-    if (!audio_file)
+    if (audio_file <= 0)
     {
         RK_AUDIO_LOG_E("Open %s fail.\n", target);
         return 0;
