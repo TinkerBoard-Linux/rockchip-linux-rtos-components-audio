@@ -59,6 +59,16 @@ int playback_device_start_impl(struct playback_device *self)
     return err;
 }
 
+int playback_set_volume(int vol)
+{
+    return pcm_set_volume(playback_handle, vol, AUDIO_FLAG_WRONLY);
+}
+
+int playback_get_volume(void)
+{
+    return pcm_get_volume(playback_handle, AUDIO_FLAG_WRONLY);
+}
+
 int playback_device_write_impl(struct playback_device *self, const char *data, size_t data_len)
 {
     int write_err;

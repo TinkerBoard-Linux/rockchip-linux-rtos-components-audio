@@ -230,6 +230,8 @@ enum pcm_param
 
 struct pcm *pcm_open(const int dev_name, int flag);
 int pcm_set_config(struct pcm *pcm_dev, struct pcm_config config);
+int pcm_set_volume(struct pcm *pcm_dev, int vol, int flag);
+int pcm_get_volume(struct pcm *pcm_dev, int flag);
 int pcm_start(struct pcm *pcm_dev);
 int pcm_prepare(struct pcm *pcm_dev);
 int pcm_start(struct pcm *pcm_dev);

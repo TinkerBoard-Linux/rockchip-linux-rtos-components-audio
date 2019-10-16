@@ -105,6 +105,9 @@ typedef void *HDC
 #define RK_AUDIO_TRUE   (1)
 #define RK_AUDIO_FAIL   (0)
 #define AMR_AB_CORE_SHARE_ADDR_INVALID (-1)
+#ifndef MAX_VOLUME
+#define MAX_VOLUME 32
+#endif
 
 #define RK_AUDIO_LOG_LEVEL_D    4
 #define RK_AUDIO_LOG_LEVEL_V    3
