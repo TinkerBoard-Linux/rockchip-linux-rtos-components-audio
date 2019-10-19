@@ -201,17 +201,18 @@ __write_OUT:
     RK_AUDIO_LOG_D("writer out\n");
 }
 
-
 int encoder_input(void *userdata, char *data, size_t data_len)
 {
     recorder_handle_t recorder = (recorder_handle_t) userdata;
     return audio_stream_read(recorder->record_stream, data, data_len);
 }
+
 int encoder_output(void *userdata, const char *data, size_t data_len)
 {
     recorder_handle_t recorder = (recorder_handle_t) userdata;
     return audio_stream_write(recorder->encode_stream, data, data_len);
 }
+
 int encoder_post(void *userdata, int samplerate, int bits, int channels)
 {
     // only decoder need.
@@ -544,6 +545,7 @@ recorder_state_t recorder_get_state(recorder_handle_t self)
     audio_mutex_unlock(self->state_lock);
     return state;
 }
+
 int recorder_stop(recorder_handle_t self)
 {
     recorder_state_t state;
@@ -576,24 +578,36 @@ int recorder_stop(recorder_handle_t self)
 
     return result;
 }
+
 int recorder_pause(recorder_handle_t self)
 {
     recoder_freq_deinit();
     return RK_AUDIO_SUCCESS;
 }
+
 int recorder_resume(recorder_handle_t self)
 {
     recoder_freq_init();
     return RK_AUDIO_SUCCESS;
 }
+
 int recorder_wait_idle(recorder_handle_t self)
 {
     return RK_AUDIO_SUCCESS;
 }
+
+int recorder_close(recorder_handle_t self)
+{
+    capture_device_t device = self->device;
+    device.close(&device);
+
+    return RK_AUDIO_SUCCESS;
+}
+
 void recorder_destroy(recorder_handle_t self)
 {
-    recorder_state_t state;
     recorder_handle_t recorder = self;
+    capture_device_t device = self->device;
     RK_AUDIO_LOG_D("in.");
     if (recorder)
     {
@@ -617,6 +631,7 @@ void recorder_destroy(recorder_handle_t self)
         encoder_cfg = NULL;
     }
 }
+
 void recorder_deinit(void)
 {
     if (g_default_encoder)

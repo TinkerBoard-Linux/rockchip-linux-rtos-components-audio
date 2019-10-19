@@ -7,7 +7,7 @@
 #include "AudioConfig.h"
 #include "audio_pcm.h"
 
-struct pcm *playback_handle;
+static struct pcm *playback_handle = NULL;
 
 #define NO_BUFFER_MODE 1
 int playback_device_open_impl(struct playback_device *self, playback_device_cfg_t *cfg)
@@ -15,6 +15,10 @@ int playback_device_open_impl(struct playback_device *self, playback_device_cfg_
     struct pcm_config config;
 
     RK_AUDIO_LOG_D("cfg->frame_size = %d.", cfg->frame_size);
+
+    if (playback_handle)
+        goto OPEN_SUCCESS;
+
     if (NO_BUFFER_MODE)
         config.channels = 2;
     else
@@ -35,7 +39,7 @@ int playback_device_open_impl(struct playback_device *self, playback_device_cfg_
         playback_handle = NULL;
         return RK_AUDIO_FAILURE;
     }
-
+OPEN_SUCCESS:
     RK_AUDIO_LOG_D("Open Playback success.");
 
     return RK_AUDIO_SUCCESS;
@@ -70,7 +74,7 @@ int playback_device_stop_impl(struct playback_device *self)
 {
     int stop_err = 0;
 
-    RK_AUDIO_LOG_D("\n");
+    RK_AUDIO_LOG_V("\n");
 
     stop_err = pcm_stop(playback_handle);
     RK_AUDIO_LOG_D("stop_err = %d", stop_err);

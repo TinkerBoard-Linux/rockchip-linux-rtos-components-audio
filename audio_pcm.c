@@ -62,13 +62,9 @@ static unsigned long m_bytes_to_frames(struct pcm *pcm_dev, unsigned long bytes)
 
 int pcm_set_config(struct pcm *pcm_dev, struct pcm_config config)
 {
-    struct AUDIO_PARAMS aparams;
-    memset(&aparams, 0x0, sizeof(aparams));
-    aparams.channels = config.channels;
-    aparams.sampleRate = config.rate;
-    aparams.sampleBits = config.bits;
-    pcm_dev->config = config;
     int ret;
+
+    pcm_dev->config = config;
     struct audio_buf *abuf = audio_malloc(sizeof(struct audio_buf));
     if (!abuf)
     {
@@ -89,10 +85,6 @@ int pcm_set_config(struct pcm *pcm_dev, struct pcm_config config)
     abuf->period_size = m_bytes_to_frames(pcm_dev, config.period_size);
     ret = audio_device_control(pcm_dev->device, RK_AUDIO_CTL_PCM_PREPARE, abuf);
 
-
-    ret = audio_device_control(pcm_dev->device, RK_AUDIO_CTL_HW_PARAMS, &aparams);
-
-
     pcm_dev->user_data = abuf;
 
     return ret;
@@ -100,23 +92,24 @@ int pcm_set_config(struct pcm *pcm_dev, struct pcm_config config)
 
 int pcm_prepare(struct pcm *pcm_dev)
 {
+    struct AUDIO_PARAMS aparams;
+
+    aparams.channels = pcm_dev->config.channels;
+    aparams.sampleRate = pcm_dev->config.rate;
+    aparams.sampleBits = pcm_dev->config.bits;
+    audio_device_control(pcm_dev->device, RK_AUDIO_CTL_HW_PARAMS, &aparams);
+
     return 0;
 }
 
 int pcm_start(struct pcm *pcm_dev)
 {
-#ifdef OS_IS_FREERTOS
-    audio_device_control(pcm_dev->device, RK_AUDIO_CTL_START, NULL);
-#endif
-    return 0;
+    return audio_device_control(pcm_dev->device, RK_AUDIO_CTL_START, NULL);
 }
 
 int pcm_stop(struct pcm *pcm_dev)
 {
-    int ret = audio_device_control(pcm_dev->device, RK_AUDIO_CTL_STOP, NULL);
-    ret = audio_device_control(pcm_dev->device, RK_AUDIO_CTL_PCM_RELEASE, NULL);
-
-    return ret;
+    return audio_device_control(pcm_dev->device, RK_AUDIO_CTL_STOP, NULL);
 }
 
 int pcm_close(struct pcm *pcm_dev)
@@ -127,6 +120,7 @@ int pcm_close(struct pcm *pcm_dev)
             audio_free_uncache(((struct audio_buf *)pcm_dev->user_data)->buf);
         audio_free(pcm_dev->user_data);
     }
+    audio_device_control(pcm_dev->device, RK_AUDIO_CTL_PCM_RELEASE, NULL);
     audio_device_close(pcm_dev->device);
     audio_free(pcm_dev);
 

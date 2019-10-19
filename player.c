@@ -277,6 +277,7 @@ int decoder_input(void *userdata, char *data, size_t data_len)
     player_handle_t player = (player_handle_t) userdata;
     return audio_stream_read(player->preprocess_stream, data, data_len);
 }
+
 void player_audio_resample_init(int samplerate, int resample_rate)
 {
     g_resample_buffer = audio_malloc(2 * MAX_RESAMPLE_BUFFER_SIZE * sizeof(char));
@@ -286,6 +287,7 @@ void player_audio_resample_init(int samplerate, int resample_rate)
         SRCInit(g_pSRC, samplerate, resample_rate);
     }
 }
+
 static short rs_input_buffer[51 * 4 + 128];
 int player_audio_resample(player_handle_t player, char *data, size_t data_len)
 {
@@ -306,6 +308,7 @@ int player_audio_resample(player_handle_t player, char *data, size_t data_len)
     int ret = audio_stream_write(player->decode_stream, g_resample_buffer, resample_out_len);
     return ret;
 }
+
 int decoder_output(void *userdata, char *data, size_t data_len)
 {
     player_handle_t player = (player_handle_t) userdata;
@@ -616,7 +619,6 @@ void *playback_run(void *data)
                     player->listen(player, PLAY_INFO_IDLE, player->userdata);
                 }
                 audio_mutex_unlock(player->state_lock);
-                device.close(&device);
                 continue;
             }
             player->state = PLAYER_STATE_RUNNING;
@@ -634,7 +636,6 @@ void *playback_run(void *data)
                 }
                 audio_mutex_unlock(player->state_lock);
                 device.stop(&device);
-                device.close(&device);
                 continue;
             }
             memset(read_buf, 0, frame_size * 2);
@@ -654,47 +655,35 @@ void *playback_run(void *data)
                     audio_stream_stop(player->decode_stream);
                     break;
                 }
-                audio_mutex_lock(player->state_lock);
-                if (player->state == PLAYER_STATE_PAUSED)
+                switch (player->state)
+                {
+                case PLAYER_STATE_PAUSED:
                 {
                     RK_AUDIO_LOG_D("PLAYER_STATE_PAUSED.");
                     device.stop(&device);
-                    device.close(&device);
-                    //if(player->listen) {
-                    //    player->listen(player,PLAY_INFO_PAUSED,player->userdata);
-                    //}
-                    audio_mutex_unlock(player->state_lock);
-                    RK_AUDIO_LOG_V("play pause");
+                    RK_AUDIO_LOG_D("play pause");
                     audio_semaphore_take(player->pause_sem);
-                    audio_mutex_lock(player->state_lock);
-                    //if(player->listen) {
-                    //    player->listen(player,PLAY_INFO_RESUMED,player->userdata);
-                    //}
-                    audio_mutex_unlock(player->state_lock);
-                    device.open(&device, &device_cfg);
                     device.start(&device);
-                    RK_AUDIO_LOG_V("play resume");
+                    RK_AUDIO_LOG_D("play resume");
+                    /* fall through */
                 }
-                else
-                {
-                    audio_mutex_unlock(player->state_lock);
-                }
-                //OS_LOG_D(player,"write data:%d\n",read_size);
-                if (player->state == PLAYER_STATE_RUNNING)
+                case PLAYER_STATE_RUNNING:
                 {
                     total_pcm_cnt += (read_size / 4);
                     device.write(&device, read_buf + oddframe, read_size);
-                    if (read_size < frame_size)
-                    {
-                        RK_AUDIO_LOG_W("underrun.");
-                        break;
-                    }
+                    break;
                 }
-                //memset(read_buf,0,frame_size);
-                if (oddframe == 0)
-                    oddframe = frame_size;
-                else
-                    oddframe = 0;
+                default:
+                {
+                    break;
+                }
+                }
+                if (read_size < frame_size)
+                {
+                    RK_AUDIO_LOG_D("underrun.");
+                    break;
+                }
+                oddframe = (oddframe == 0) ? frame_size : 0;
             }
             if (read_buf)
             {
@@ -702,7 +691,6 @@ void *playback_run(void *data)
                 audio_free(read_buf);
             }
             device.stop(&device);
-            device.close(&device);
             audio_mutex_lock(player->state_lock);
             player->state = PLAYER_STATE_IDLE;
             if (player->listen)
@@ -860,6 +848,7 @@ int player_stop(player_handle_t self)
     player_freq_deinit();
     return result;
 }
+
 int player_pause(player_handle_t self)
 {
     audio_mutex_lock(self->state_lock);
@@ -872,6 +861,7 @@ int player_pause(player_handle_t self)
     player_freq_deinit();
     return RK_AUDIO_SUCCESS;
 }
+
 int player_resume(player_handle_t self)
 {
 
@@ -887,6 +877,7 @@ int player_resume(player_handle_t self)
 
     return RK_AUDIO_SUCCESS;
 }
+
 int player_wait_idle(player_handle_t self)
 {
     if (self->listen)
@@ -903,6 +894,15 @@ int player_wait_idle(player_handle_t self)
     }
     return RK_AUDIO_SUCCESS;
 }
+
+int player_close(player_handle_t self)
+{
+    playback_device_t device = self->device;
+    device.close(&device);
+
+    return RK_AUDIO_SUCCESS;
+}
+
 void player_destroy(player_handle_t self)
 {
     player_handle_t player = self;
@@ -910,7 +910,7 @@ void player_destroy(player_handle_t self)
     RK_AUDIO_LOG_D("player_destory in");
     if (player)
     {
-        // device.close(&device);
+        device.close(&device);
         audio_queue_destroy(player->preprocess_queue);
         audio_queue_destroy(player->decode_queue);
         audio_queue_destroy(player->play_queue);
@@ -921,11 +921,12 @@ void player_destroy(player_handle_t self)
         audio_thread_exit(player->preprocess_task);
         audio_thread_exit(player->decode_task);
         audio_thread_exit(player->play_task);
-
     }
     if (decoder_cfg)
+    {
         audio_free(decoder_cfg);
-    decoder_cfg = NULL;
+        decoder_cfg = NULL;
+    }
     if (processor_cfg)
     {
         audio_free(processor_cfg);
@@ -934,8 +935,8 @@ void player_destroy(player_handle_t self)
     RK_AUDIO_LOG_D("player_destory player free.");
     audio_free(player);
     player = NULL;
-
 }
+
 void player_deinit()
 {
     if (g_default_decoder)

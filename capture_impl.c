@@ -8,13 +8,16 @@
 #include "AudioConfig.h"
 #include "audio_pcm.h"
 
-struct pcm *capture_handle;
+static struct pcm *capture_handle = NULL;
 
 int capture_device_open_impl(struct capture_device *self, capture_device_cfg_t *cfg)
 {
     struct pcm_config config;
 
     RK_AUDIO_LOG_D("cfg->frame_size = %d.\n", cfg->frame_size);
+
+    if (capture_handle)
+        goto OPEN_SUCCESS;
 
     config.channels = cfg->channels ? cfg->channels : 2;
     config.rate = cfg->samplerate ? cfg->samplerate : 16000;
@@ -42,6 +45,7 @@ int capture_device_start_impl(struct capture_device *self)
     int cap_ret = 0;
 
     RK_AUDIO_LOG_D("\n");
+    pcm_prepare(capture_handle);
     cap_ret = pcm_start(capture_handle);
     RK_AUDIO_LOG_D("pcm start return %d.\n", cap_ret);
     if (cap_ret != 0)
