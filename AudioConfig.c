@@ -424,7 +424,7 @@ int audio_fread(void *buffer, size_t size, size_t count, int stream)
 
     if (data_len == 0)
     {
-        RK_AUDIO_LOG_E("NO read data.");
+        RK_AUDIO_LOG_W("NO read data.");
         return 0;
     }
     ret = read(stream, (uint8_t *)buffer, data_len);
@@ -444,7 +444,7 @@ int audio_fwrite(const void *buffer, size_t size, size_t count, int stream)
     int ret = 0;
     if (data_len == 0)
     {
-        RK_AUDIO_LOG_V(" NO write data.\n");
+        RK_AUDIO_LOG_W(" NO write data.\n");
         return 0;
     }
 
@@ -573,7 +573,7 @@ int audio_queue_receive(struct audio_player_queue *self, void *data)
         RK_AUDIO_LOG_D("os_queue_state = %x.", (int)self->state);
         if (self->state & AUDIO_QUEUE_STATE_STOPPED)
         {
-            RK_AUDIO_LOG_E("AUDIO_QUEUE_STATE_STOPPED.");
+            RK_AUDIO_LOG_W("AUDIO_QUEUE_STATE_STOPPED.");
             audio_mutex_unlock(self->lock);
             return RK_AUDIO_FAILURE;
         }
@@ -583,10 +583,9 @@ int audio_queue_receive(struct audio_player_queue *self, void *data)
         }
         if (self->state & AUDIO_QUEUE_STATE_FINISHED)
         {
-            RK_AUDIO_LOG_D("AUDIO_QUEUE_STATE_FINISHED-1.");
             self->state &= (~AUDIO_QUEUE_STATE_FINISHED);
             audio_mutex_unlock(self->lock);
-            RK_AUDIO_LOG_D("AUDIO_QUEUE_STATE_FINISHED.");
+            RK_AUDIO_LOG_W("AUDIO_QUEUE_STATE_FINISHED.");
             return RK_AUDIO_SUCCESS;
         }
         self->state |= AUDIO_QUEUE_STATE_WAIT_READABLE;

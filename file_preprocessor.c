@@ -27,7 +27,7 @@ int file_preprocessor_init_impl(struct play_preprocessor *self,
     RK_AUDIO_LOG_D("[%s] open native file, file: %s", cfg->tag, cfg->target);
     cfg->frame_size = FILE_PREPROCESSOR_FRAME_SIZE;
     self->userdata = (void *)fd;
-    RK_AUDIO_LOG_D("[%s] open native file ok, file: %s, audio type:%s",
+    RK_AUDIO_LOG_V("[%s] open native file ok, file: %s, audio type:%s",
                    cfg->tag,
                    cfg->target,
                    cfg->type);

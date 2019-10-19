@@ -51,13 +51,13 @@ HDC AudioLoadDsp(void)
     {
         if (rkdev_create(DEV_CLASS_DSP, 0, NULL) != RK_AUDIO_SUCCESS)
         {
-            RK_AUDIO_LOG_D("\r\n  dsp create fail");
+            RK_AUDIO_LOG_E("\r\n\tdsp create fail");
         }
 
         DSPDevHandle = rkdev_open(DEV_CLASS_DSP, 0, NOT_CARE);
         if (DSPDevHandle == NULL)
         {
-            RK_AUDIO_LOG_E("\r\n	dsp %d open fail", 0);
+            RK_AUDIO_LOG_E("\r\n\tdsp %d open fail", 0);
             rkos_semaphore_give(g_dsp_semaphore);
             return NULL;
         }
@@ -76,7 +76,7 @@ void AudioUnloadDsp(void)
     rkos_semaphore_take(g_dsp_semaphore, MAX_DELAY);
     if (g_DSPLoadCnt == 0)
     {
-        RK_AUDIO_LOG_D("\r\n [%s] DSP close failure", __func__);
+        RK_AUDIO_LOG_E("\r\n [%s] DSP close failure", __func__);
     }
     else
     {
@@ -175,7 +175,7 @@ int AudioSendMsg(audio_data_type id, MSGBOX_SYSTEM_CMD mesg)
             ret = -1;
             break;
         }
-        printf("Loading dsp ...");
+        RK_AUDIO_LOG_V("Loading dsp ...");
     case MEDIA_MSGBOX_CMD_ENCODE:
     case MEDIA_MSGBOX_CMD_DECODE:
         work_gp->id = id;
@@ -192,12 +192,12 @@ int AudioSendMsg(audio_data_type id, MSGBOX_SYSTEM_CMD mesg)
         ret = rk_dsp_work_destroy(work_gp);
         if (g_DSPDevHandle)
         {
-            printf("Close Dsp ...");
+            RK_AUDIO_LOG_V("Close Dsp ...");
             AudioUnloadDsp();
         }
         break;
     default:
-        printf("AudioSendMsg error.");
+        RK_AUDIO_LOG_E("AudioSendMsg error.");
         ret = -1;
         break;
     }

@@ -116,7 +116,7 @@ void write_run(void *data)
         RK_AUDIO_LOG_D("writer get mssage\n");
         if (audio_queue_receive(recorder->write_queue, &msg) == -1)
         {
-            RK_AUDIO_LOG_D("write_run exit");
+            RK_AUDIO_LOG_E("receive error, exit");
             return;
         }
         RK_AUDIO_LOG_D("writer queue get msg\n");
@@ -130,7 +130,7 @@ void write_run(void *data)
         processor_cfg.tag = recorder->tag;
         RK_AUDIO_LOG_D("writer init begin writer.type:%s\n", writer.type);
         temp_size = recorder->samplerate * (recorder->bits >> 3) * recorder->channels * recorder->duration;
-        RK_AUDIO_LOG_E("malloc temp_buf %d.\n", temp_size);
+        RK_AUDIO_LOG_V("malloc temp_buf %d.\n", temp_size);
         temp_count = 0;
         temp_buf = audio_malloc(temp_size);
         if (!temp_buf)
@@ -158,13 +158,13 @@ void write_run(void *data)
         {
             if (res)
             {
-                RK_AUDIO_LOG_D("writer init go to write out\n");
+                RK_AUDIO_LOG_E("writer init err go to write out\n");
                 goto __write_OUT;
             }
             read_buf = (char *)audio_malloc(frame_size);
             if (!read_buf)
             {
-                RK_AUDIO_LOG_D("can't audio_malloc buffer");
+                RK_AUDIO_LOG_E("can't audio_malloc buffer");
                 return;
             }
             do
@@ -240,7 +240,7 @@ void encoder_run(void *data)
     {
         if (audio_queue_receive(recorder->encode_queue, &encode_msg) == -1)
         {
-            RK_AUDIO_LOG_D("encode_run can't get msg");
+            RK_AUDIO_LOG_E("encode_run can't get msg");
             return;
         }
         audio_type = encode_msg.recorder.type;
@@ -256,7 +256,7 @@ void encoder_run(void *data)
         }
         if (!is_found_encoder)
         {
-            RK_AUDIO_LOG_D("encode_run, cant found encoder\n");
+            RK_AUDIO_LOG_E("encode_run, cant found encoder\n");
             audio_stream_stop(recorder->record_stream);
             audio_mutex_lock(recorder->state_lock);
             if (recorder->listen)
@@ -283,7 +283,7 @@ void encoder_run(void *data)
             }
             if (encoder.init(&encoder, encoder_cfg))
             {
-                RK_AUDIO_LOG_D("encode_run, encoder init fail\n");
+                RK_AUDIO_LOG_E("encode_run, encoder init fail\n");
                 audio_stream_stop(recorder->record_stream);
                 audio_mutex_lock(recorder->state_lock);
                 recorder->state = recorder_STATE_IDLE;
@@ -309,11 +309,11 @@ void encoder_run(void *data)
             switch (encode_res)
             {
             case RECORD_ENCODER_INPUT_ERROR:
-                RK_AUDIO_LOG_D("record_encoder_INPUT_ERROR\n");
+                RK_AUDIO_LOG_W("record_encoder_INPUT_ERROR\n");
                 audio_stream_stop(recorder->encode_stream);
                 break;
             case RECORD_ENCODER_OUTPUT_ERROR:
-                RK_AUDIO_LOG_D("record_encoder_OUTPUT_ERROR\n");
+                RK_AUDIO_LOG_W("record_encoder_OUTPUT_ERROR\n");
                 audio_stream_stop(recorder->record_stream);
                 audio_mutex_lock(recorder->state_lock);
                 recorder->state = recorder_STATE_IDLE;
@@ -324,12 +324,12 @@ void encoder_run(void *data)
                 audio_mutex_unlock(recorder->state_lock);
                 goto _DESTROY_encoder;
             case RECORD_ENCODER_ENCODE_ERROR:
-                RK_AUDIO_LOG_D("record_encoder_encode_ERROR\n");
+                RK_AUDIO_LOG_W("record_encoder_encode_ERROR\n");
                 audio_stream_stop(recorder->record_stream);
                 audio_stream_stop(recorder->encode_stream);
                 break;
             default:
-                RK_AUDIO_LOG_D("audio_stream_finish\n");
+                RK_AUDIO_LOG_W("audio_stream_finish\n");
                 audio_stream_finish(recorder->encode_stream);
                 goto _DESTROY_encoder;
                 break;
@@ -362,7 +362,7 @@ void capture_run(void *data)
     {
         if (audio_queue_receive(recorder->record_queue, &msg) == -1)
         {
-            RK_AUDIO_LOG_D("capture_run receive data failed\n");
+            RK_AUDIO_LOG_E("capture_run receive data failed\n");
             return;
         }
         RK_AUDIO_LOG_D("capture_run:msg.type = %x,%d\n", &msg.type, msg.type);
@@ -400,7 +400,7 @@ void capture_run(void *data)
                 read_buf = (char *)audio_malloc(frame_size);
                 if (!read_buf)
                 {
-                    RK_AUDIO_LOG_D("create read buf failed\n");
+                    RK_AUDIO_LOG_E("create read buf failed\n");
                     break;
                 }
                 memset(read_buf, 0, frame_size);
@@ -415,7 +415,7 @@ void capture_run(void *data)
                     }
                     if (read_size == 0)
                     {
-                        RK_AUDIO_LOG_D("do not read data\n");
+                        RK_AUDIO_LOG_W("do not read data\n");
                         audio_stream_finish(recorder->record_stream);
                         break;
                     }
@@ -424,7 +424,7 @@ void capture_run(void *data)
 
                     if (write_size < frame_size)
                     {
-                        RK_AUDIO_LOG_D("read read_size < frame_size, go to stop\n");
+                        RK_AUDIO_LOG_W("read read_size < frame_size, go to stop\n");
                         break;
                     }
 
@@ -520,7 +520,7 @@ int recorder_record(recorder_handle_t self, record_cfg_t *cfg)
         msg.recorder.target = audio_malloc(strlen(cfg->target) + 1);
         if (msg.recorder.target == NULL)
         {
-            RK_AUDIO_LOG_V("no mem!");
+            RK_AUDIO_LOG_E("no mem!");
             return RK_AUDIO_FAILURE;
         }
         memcpy(msg.recorder.target, cfg->target, strlen(cfg->target));
@@ -563,12 +563,12 @@ int recorder_stop(recorder_handle_t self)
         result = 0;
         msg.type = CMD_RECORDER_STOP;
         audio_queue_send(recorder->record_queue, &msg);
-        RK_AUDIO_LOG_D("recorder_stop stop recorder,pause/running state\n");
+        RK_AUDIO_LOG_V("recorder_stop stop recorder,pause/running state\n");
     }
     else
     {
         audio_mutex_unlock(self->state_lock);
-        RK_AUDIO_LOG_D("recorder_stop stop recorder,idle state\n");
+        RK_AUDIO_LOG_V("recorder_stop stop recorder,idle state\n");
         result = 0;
     }
 

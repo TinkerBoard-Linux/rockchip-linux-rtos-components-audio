@@ -92,7 +92,7 @@ play_decoder_error_t play_amr_process_impl(struct play_decoder *self)
         read_bytes = amr->input(amr->userdata, g_Amr->_buffer_in + 1, WMF_MR122_FRAME_SIZE);
         if (read_bytes != WMF_MR122_FRAME_SIZE)
         {
-            RK_AUDIO_LOG_D("read amr frame failed\n");
+            RK_AUDIO_LOG_E("read amr frame failed\n");
             return PLAY_DECODER_DECODE_ERROR;
         }
         ret = AudioSendMsg(TYPE_AUDIO_AMR_DEC, MEDIA_MSGBOX_CMD_DECODE);

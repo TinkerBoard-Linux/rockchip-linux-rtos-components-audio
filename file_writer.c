@@ -18,7 +18,7 @@ int file_writer_init_impl(struct record_writer *self,
 
     cfg->frame_size = 4096;
     self->userdata = (void *)fd;
-    RK_AUDIO_LOG_D("[%s]open native file ok, file: %s, audio type:%s\n",
+    RK_AUDIO_LOG_V("[%s]open native file ok, file: %s, audio type:%s\n",
                    cfg->tag, cfg->target, cfg->type);
 
     return RK_AUDIO_SUCCESS;

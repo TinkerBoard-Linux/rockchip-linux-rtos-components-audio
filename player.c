@@ -91,7 +91,7 @@ void player_freq_init(void)
         // rkpm_add_freq_scene(FREQ_NETPLAY);
         break;
     default:
-        RK_AUDIO_LOG_D("\n==player_freq_init: error!!!==\n");
+        RK_AUDIO_LOG_E("\n==player_freq_init: error!!!==\n");
         while (1);
         break;
     }
@@ -145,7 +145,7 @@ void *preprocess_run(void *data)
     if (!processor_cfg)
     {
         processor_cfg = (play_preprocessor_cfg_t *)audio_malloc(sizeof(*processor_cfg));
-        RK_AUDIO_LOG_E("malloc processor_cfg...");
+        RK_AUDIO_LOG_D("malloc processor_cfg...");
     }
 
     //processor_cfg->type = (char *)audio_malloc(sizeof(char) * 10);
@@ -184,7 +184,7 @@ __PREPROCESS_ERROR:
 
         if (res)
         {
-            RK_AUDIO_LOG_V("init fail res:%d", res);
+            RK_AUDIO_LOG_E("init fail res:%d", res);
             player->state = PLAYER_STATE_ERROR;
             if (player->listen)
             {
@@ -664,7 +664,7 @@ void *playback_run(void *data)
                     //    player->listen(player,PLAY_INFO_PAUSED,player->userdata);
                     //}
                     audio_mutex_unlock(player->state_lock);
-                    RK_AUDIO_LOG_D("play pause");
+                    RK_AUDIO_LOG_V("play pause");
                     audio_semaphore_take(player->pause_sem);
                     audio_mutex_lock(player->state_lock);
                     //if(player->listen) {
@@ -673,7 +673,7 @@ void *playback_run(void *data)
                     audio_mutex_unlock(player->state_lock);
                     device.open(&device, &device_cfg);
                     device.start(&device);
-                    RK_AUDIO_LOG_D("play resume");
+                    RK_AUDIO_LOG_V("play resume");
                 }
                 else
                 {
@@ -686,7 +686,7 @@ void *playback_run(void *data)
                     device.write(&device, read_buf + oddframe, read_size);
                     if (read_size < frame_size)
                     {
-                        RK_AUDIO_LOG_D("underrun.");
+                        RK_AUDIO_LOG_W("underrun.");
                         break;
                     }
                 }
@@ -749,7 +749,7 @@ player_handle_t player_create(player_cfg_t *cfg)
         c.args = player;
         player->play_task = audio_thread_create("play_task", 2048, 28, &c);
     }
-    RK_AUDIO_LOG_D("out");
+    RK_AUDIO_LOG_V("Success");
     return player;
 }
 
@@ -783,8 +783,8 @@ int player_play(player_handle_t self, play_cfg_t *cfg)
         targetBuf = audio_malloc(strlen(cfg->target) + 1);
         if (targetBuf == NULL)
         {
-            RK_AUDIO_LOG_V("no mem!");
-            return RK_AUDIO_SUCCESS;
+            RK_AUDIO_LOG_E("no mem!");
+            return RK_AUDIO_FAILURE;
         }
         memcpy(targetBuf, cfg->target, strlen(cfg->target));
         msg.player.target = targetBuf;
@@ -848,13 +848,13 @@ int player_stop(player_handle_t self)
         }
         self->listen = list_callback;
         result = 0;
-        RK_AUDIO_LOG_D("stop player,pause/running state\n");
+        RK_AUDIO_LOG_V("stop player,pause/running state\n");
     }
     else
     {
         self->state = PLAYER_STATE_IDLE;
         audio_mutex_unlock(self->state_lock);
-        RK_AUDIO_LOG_D("stop player,idle state\n");
+        RK_AUDIO_LOG_V("stop player,idle state\n");
         result = 0;
     }
     player_freq_deinit();

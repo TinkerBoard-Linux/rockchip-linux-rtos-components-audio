@@ -118,22 +118,37 @@ typedef void *HDC
 #define RK_AUDIO_FAIL   (0)
 #define AMR_AB_CORE_SHARE_ADDR_INVALID (-1)
 
-#define RK_AUDIO_LOG_D(fmt, ...)    do { \
-                                        printf( "[D]%s-%d: " fmt, __func__, __LINE__, ##__VA_ARGS__ ); \
-                                        printf( "\n"); \
-                                        }while(0)
-#define RK_AUDIO_LOG_V(fmt, ...)    do { \
-                                        printf( "[V]%s-%d: " fmt, __func__, __LINE__, ##__VA_ARGS__ ); \
-                                        printf( "\n"); \
-                                        }while(0)
-#define RK_AUDIO_LOG_W(fmt, ...)    do { \
-                                        printf( "[W]%s-%d: " fmt, __func__, __LINE__, ##__VA_ARGS__ ); \
-                                        printf( "\n"); \
-                                        }while(0)
-#define RK_AUDIO_LOG_E(fmt, ...)    do { \
-                                        printf( "[E]%s-%d: " fmt, __func__, __LINE__, ##__VA_ARGS__ ); \
-                                        printf( "\n"); \
-                                        }while(0)
+#define RK_AUDIO_LOG_LEVEL_D    4
+#define RK_AUDIO_LOG_LEVEL_V    3
+#define RK_AUDIO_LOG_LEVEL_W    2
+#define RK_AUDIO_LOG_LEVEL_E    1
+#define RK_AUDIO_LOG_LEVEL_N    0   // hide all log
+#define RK_AUDIO_LOG_LEVEL  RK_AUDIO_LOG_LEVEL_V
+
+#if (RK_AUDIO_LOG_LEVEL >= RK_AUDIO_LOG_LEVEL_D)
+#define RK_AUDIO_LOG_D(fmt, ...)    printf( "[D]%s-%d: " fmt"\n", __func__, __LINE__, ##__VA_ARGS__ )
+#else
+#define RK_AUDIO_LOG_D(fmt, ...)
+#endif
+
+#if (RK_AUDIO_LOG_LEVEL >= RK_AUDIO_LOG_LEVEL_V)
+#define RK_AUDIO_LOG_V(fmt, ...)    printf( "[V]%s-%d: " fmt"\n", __func__, __LINE__, ##__VA_ARGS__ )
+#else
+#define RK_AUDIO_LOG_V(fmt, ...)
+#endif
+
+#if (RK_AUDIO_LOG_LEVEL >= RK_AUDIO_LOG_LEVEL_W)
+#define RK_AUDIO_LOG_W(fmt, ...)    printf( "[W]%s-%d: " fmt"\n", __func__, __LINE__, ##__VA_ARGS__ )
+#else
+#define RK_AUDIO_LOG_W(fmt, ...)
+#endif
+
+#if (RK_AUDIO_LOG_LEVEL >= RK_AUDIO_LOG_LEVEL_E)
+#define RK_AUDIO_LOG_E(fmt, ...)    printf( "[E]%s-%d: " fmt"\n", __func__, __LINE__, ##__VA_ARGS__ )
+#else
+#define RK_AUDIO_LOG_E(fmt, ...)
+#endif
+
 extern uint32_t g_BcoreRetval;
 typedef struct
 {

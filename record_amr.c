@@ -47,7 +47,7 @@ int record_amr_init(struct record_encoder *self, record_encoder_cfg_t *cfg)
     g_Amr = (amr_enc_t *)g_ABCoreDat.dat[0];
     if (((int32_t)g_Amr) == AMR_AB_CORE_SHARE_ADDR_INVALID)
     {
-        RK_AUDIO_LOG_D("amr init Bcore Decoder error\n");
+        RK_AUDIO_LOG_E("amr init Bcore Decoder error\n");
         record_amr_destroy(self);
         return RK_AUDIO_FAILURE;
     }
@@ -72,7 +72,7 @@ record_encoder_error_t record_amr_process(struct record_encoder *self)
             //RK_AUDIO_LOG_D("record_amr_process:%d\n",read_bytes);
             if (read_bytes == 0)
             {
-                RK_AUDIO_LOG_D("amr->input finish \n");
+                RK_AUDIO_LOG_V("amr->input finish \n");
             }
             else if (read_bytes == -1)
             {

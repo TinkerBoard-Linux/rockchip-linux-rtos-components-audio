@@ -7,14 +7,6 @@
 #include "AudioConfig.h"
 #include "net/http/http_api.h"
 
-#define DBG_HTTP_PRE_INFO 0
-
-#if DBG_HTTP_PRE_INFO
-#define DBG_HTTP_PRE(fmt, arg...) rk_printf("[http_player] " fmt "\n", ##arg)
-#else
-#define DBG_HTTP_PRE(fmt, arg...) NULL
-#endif
-
 int http_socket = -1;
 unsigned char g_is_chunked = 0;
 unsigned long http_totalsize;
@@ -28,7 +20,7 @@ static int check_http_audio_type(char *target, char **type)
     else if (!strcmp(target, "application/octet-stream"))
     {
         *type = "mp3";  /* consider echocloud platform just provide mp3 */
-        DBG_HTTP_PRE("# Content-Type: = %s #\n", target);
+        RK_AUDIO_LOG_V("# Content-Type: = %s #", target);
     }
     else
     {
@@ -66,25 +58,25 @@ int http_preprocessor_init_impl(struct play_preprocessor *self,
 
     g_is_chunked = RK_AUDIO_FAIL;
     struct HTTP_RES_HEADER resp = parse_header(response);
-    DBG_HTTP_PRE("\n>>>>http header parse success:<<<<\n");
-    DBG_HTTP_PRE("\tHTTP reponse: %d\n", resp.status_code);
+    RK_AUDIO_LOG_D("\n>>>>http header parse success:<<<<");
+    RK_AUDIO_LOG_V("\tHTTP reponse: %d", resp.status_code);
     if (resp.status_code != 200 && resp.status_code != 206)
     {
-        DBG_HTTP_PRE("file can't be download,status code: %d\n", resp.status_code);
+        RK_AUDIO_LOG_E("file can't be download,status code: %d\n", resp.status_code);
         bSucc = RK_AUDIO_FAIL;
         goto END;
     }
-    DBG_HTTP_PRE("\tHTTP file type: %s\n", resp.content_type);
+    RK_AUDIO_LOG_D("\tHTTP file type: %s", resp.content_type);
 
     g_is_chunked = is_chunked(resp);
 
     if (g_is_chunked)
     {
-        DBG_HTTP_PRE("\tHTTP transfer-encoding: %s\n", resp.transfer_encoding);
+        RK_AUDIO_LOG_V("\tHTTP transfer-encoding: %s", resp.transfer_encoding);
     }
     else
     {
-        DBG_HTTP_PRE("\tHTTP file length: %ld byte\n\n", resp.content_length);
+        RK_AUDIO_LOG_V("\tHTTP file length: %ld byte", resp.content_length);
         http_totalsize = resp.content_length;
     }
     cfg->file_size = resp.content_length;
@@ -93,7 +85,7 @@ int http_preprocessor_init_impl(struct play_preprocessor *self,
         int ret = check_http_audio_type(resp.content_type, &cfg->type);
         if (ret != 0)
         {
-            DBG_HTTP_PRE("can't find decode type");
+            RK_AUDIO_LOG_E("can't find decode type");
             bSucc = RK_AUDIO_FAIL;
             goto END;
         }
@@ -101,7 +93,7 @@ int http_preprocessor_init_impl(struct play_preprocessor *self,
 
     self->userdata = (void *)&http_socket;
     cfg->frame_size = HTTP_PREPROCESSOR_FRAME_SIZE;
-    DBG_HTTP_PRE("[%s] open native http ok, http: %s, audio type:%s",
+    RK_AUDIO_LOG_V("[%s] open native http ok, http: %s, audio type:%s",
            cfg->tag,
            cfg->target,
            cfg->type);
@@ -115,7 +107,7 @@ END:
         if (http_socket != -1)
         {
             close(http_socket);
-            DBG_HTTP_PRE("****** close socket. ******\n");
+            RK_AUDIO_LOG_W("****** close socket. ******");
         }
         return RK_AUDIO_FAILURE;
     }
@@ -125,7 +117,7 @@ END:
 int http_preprocessor_read_impl(struct play_preprocessor *self, char *data,
                                 size_t data_len)
 {
-    //DBG_HTTP_PRE("\nread data_len:%d",data_len);
+    //RK_AUDIO_LOG_D("\nread data_len:%d",data_len);
     int rs = RK_AUDIO_FAIL;
 
     if (!self->userdata)
@@ -150,7 +142,7 @@ int http_preprocessor_read_impl(struct play_preprocessor *self, char *data,
         {
             if (rs != data_len)
             {
-                DBG_HTTP_PRE("read data underrun,data_len:%d has_read:%d", data_len, rs);
+                RK_AUDIO_LOG_D("read data underrun,data_len:%d has_read:%d", data_len, rs);
             }
             http_totalsize -= rs;
         }
@@ -158,12 +150,12 @@ int http_preprocessor_read_impl(struct play_preprocessor *self, char *data,
         {
             if (http_totalsize > 0)
             {
-                DBG_HTTP_PRE("http read data fail");
+                RK_AUDIO_LOG_E("http read data fail");
                 return -101; //http not end, return this val for app stop player
             }
             else
             {
-                DBG_HTTP_PRE("http read data over");
+                RK_AUDIO_LOG_V("http read data over");
             }
         }
         else if (rs == -1)

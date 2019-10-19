@@ -154,7 +154,7 @@ play_decoder_error_t play_mp3_process_impl(struct play_decoder *self)
         /* RK_AUDIO_LOG_D("mp3 process read:%x\n",read_bytes); */
         if ((read_bytes == 0) && (bytes_left == 0))
         {
-            RK_AUDIO_LOG_D("mp3 read over");
+            RK_AUDIO_LOG_V("mp3 read over");
             return RK_AUDIO_SUCCESS;
         }
         else if (read_bytes == -1)
@@ -213,24 +213,24 @@ play_decoder_error_t play_mp3_process_impl(struct play_decoder *self)
 
                 if (ret != 0)
                 {
-                    RK_AUDIO_LOG_D("decode error, no frame header.\n");
+                    RK_AUDIO_LOG_E("decode error, no frame header.\n");
                     continue;
                 }
 
                 if ((channels != 1) && (channels != 2))
                 {
-                    RK_AUDIO_LOG_D("mp3 decode channels don't support, continue read file...\n");
+                    RK_AUDIO_LOG_W("mp3 decode channels don't support, continue read file...\n");
                     continue;
                 }
 
                 if (sample_rate < 8000 || sample_rate > 48000)
                 {
-                    RK_AUDIO_LOG_D("mp3 decode sample rate don't support, continue read file...\n");
+                    RK_AUDIO_LOG_W("mp3 decode sample rate don't support, continue read file...\n");
                     continue;
                 }
                 if (bits != 16)
                 {
-                    RK_AUDIO_LOG_D("mp3 decode sample bit don't support, continue read file...\n");
+                    RK_AUDIO_LOG_W("mp3 decode sample bit don't support, continue read file...\n");
                     continue;
                 }
                 mp3->post(mp3->userdata, sample_rate, bits, channels);
@@ -244,7 +244,7 @@ play_decoder_error_t play_mp3_process_impl(struct play_decoder *self)
             {
                 if (g_pMPI->mpi_frameinfo.samprate != sample_rate)
                 {
-                    RK_AUDIO_LOG_D("WARNING: Changing Frame Header is Happenned.\n");
+                    RK_AUDIO_LOG_W("WARNING: Changing Frame Header is Happenned.\n");
                 }
                 size_t output_bytes = g_pMPI->mpi_frameinfo.outputSamps * 2;
                 int write_bytes = mp3->output(mp3->userdata, (char *)pi_pcmbuf, output_bytes);
@@ -287,4 +287,3 @@ void play_mp3_destroy_impl(struct play_decoder *self)
     RK_AUDIO_LOG_D("out\n");
 }
 #endif
-

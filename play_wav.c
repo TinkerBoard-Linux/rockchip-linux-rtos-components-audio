@@ -51,7 +51,7 @@ play_decoder_error_t play_wav_process_impl(struct play_decoder *self)
         {
             return PLAY_DECODER_DECODE_ERROR;
         }
-        RK_AUDIO_LOG_D("wav decoder sample rate: %d, channels: %d, bits: %d",
+        RK_AUDIO_LOG_V("wav decoder sample rate: %d, channels: %d, bits: %d",
                        header.samplerate, header.num_channels, header.bits_per_sample);
         music_samplerate = header.samplerate;
         music_bits_per_sample = header.bits_per_sample;

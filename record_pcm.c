@@ -40,18 +40,18 @@ record_encoder_error_t record_pcm_process(struct record_encoder *self)
         //OS_LOG_D(record_pcm,"record_pcm_process:%d\n",read_bytes);
         if (read_bytes == 0)
         {
-            RK_AUDIO_LOG_D("pcm->input finish \n");
+            RK_AUDIO_LOG_V("pcm->input finish \n");
             return RECORD_ENCODER_SUCCESS;
         }
         else if (read_bytes == -1)
         {
-            RK_AUDIO_LOG_D("pcm->input failed \n");
+            RK_AUDIO_LOG_E("pcm->input failed \n");
             return RECORD_ENCODER_INPUT_ERROR;
         }
         int write_bytes = pcm->output(pcm->userdata, pcm->read_buf, read_bytes);
         if (write_bytes == -1)
         {
-            RK_AUDIO_LOG_D("pcm->output failed \n");
+            RK_AUDIO_LOG_E("pcm->output failed \n");
             return RECORD_ENCODER_OUTPUT_ERROR;
         }
     }

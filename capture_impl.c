@@ -31,8 +31,8 @@ int capture_device_open_impl(struct capture_device *self, capture_device_cfg_t *
         capture_handle = NULL;
         return RK_AUDIO_FAILURE;
     }
-
-    RK_AUDIO_LOG_D("Open Capture success.\n");
+OPEN_SUCCESS:
+    RK_AUDIO_LOG_V("Open Capture success.\n");
 
     return RK_AUDIO_SUCCESS;
 }
