@@ -179,7 +179,7 @@ void write_run(void *data)
                 {
                     break;
                 }
-                if (temp_count < temp_size)
+                if (temp_count < temp_size - frame_size)
                 {
                     memcpy(temp_buf + temp_count, read_buf, read_size);
                     temp_count += read_size;
