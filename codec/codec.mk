@@ -21,7 +21,7 @@ LIBS_MP3_SRCS := $(foreach dir,$(MP3_DIRS),$(wildcard $(dir)/*.[cS] $(dir)/*.cpp
 LIBS_MP3_NAME := $(LIBS_INSTALL_DIRS)/libmp3.a
 LIBS_MP3_CFLAGS := $(CFLAGS) $(MP3_INCLUDE_PATHS) $(INCLUDE_PATHS)
 LIBS_MP3_CPPFLAGS := $(CPPFLAGS)
-LIBS_MP3_SRCS_OBJS := $(addsuffix .o, $(basename $(LIBS_MP3_SRCS))) $(addsuffix .d, $(basename $(LIBS_MP3_SRCS)))
+LIBS_MP3_SRCS_OBJS := $(addsuffix .o, $(basename $(LIBS_MP3_SRCS)))
 LIBS_CLEAN_OBJS += $(LIBS_MP3_SRCS_OBJS)
 LIBS_ALL_NAME += $(LIBS_MP3_NAME)
 INCLUDE_PATHS += $(MP3_INCLUDE_PATHS)
@@ -82,7 +82,7 @@ LIBS_AMR_SRCS := $(foreach dir,$(AMR_DIRS),$(wildcard $(dir)/*.[cS] $(dir)/*.cpp
 LIBS_AMR_SRCS := $(filter-out $(AMR_FILES_IGNORE),$(LIBS_AMR_SRCS))
 LIBS_AMR_CFLAGS := $(CFLAGS) $(AMR_INCLUDE_PATHS) $(INCLUDE_PATHS)
 LIBS_AMR_CPPFLAGS := $(CPPFLAGS) -xc
-LIBS_AMR_SRCS_OBJS := $(addsuffix .o, $(basename $(LIBS_AMR_SRCS))) $(addsuffix .d, $(basename $(LIBS_AMR_SRCS)))
+LIBS_AMR_SRCS_OBJS := $(addsuffix .o, $(basename $(LIBS_AMR_SRCS)))
 LIBS_CLEAN_OBJS += $(LIBS_AMR_SRCS_OBJS)
 INCLUDE_PATHS += $(AMR_INCLUDE_PATHS)
 
@@ -108,7 +108,7 @@ LIBS_SPEEX_NAME := $(LIBS_INSTALL_DIRS)/libspeex.a
 LIBS_SPEEX_CFLAGS := $(CFLAGS) $(SPEEX_INCLUDE_PATHS) $(INCLUDE_PATHS)
 LIBS_SPEEX_CPPFLAGS := $(CPPFLAGS)
 LIBS_SPEEX_CPPFLAGS += -DFIXED_POINT
-LIBS_SPEEX_SRCS_OBJS += $(addsuffix .o, $(basename $(LIBS_SPEEX_SRCS))) $(addsuffix .d, $(basename $(LIBS_SPEEX_SRCS)))
+LIBS_SPEEX_SRCS_OBJS += $(addsuffix .o, $(basename $(LIBS_SPEEX_SRCS)))
 LIBS_CLEAN_OBJS += $(LIBS_SPEEX_SRCS_OBJS)
 LIBS_ALL_NAME += $(LIBS_SPEEX_NAME)
 INCLUDE_PATHS += $(SPEEX_INCLUDE_PATHS)
@@ -116,39 +116,17 @@ LIBS_CODEC_OBJS += $(LIBS_SPEEX_SRCS_OBJS)
 endif
 endif
 
-$(LIBS_SPEEX_SRCS_OBJS):
+$(LIBS_SPEEX_SRCS_OBJS): $(LIBS_SPEEX_SRCS)
 ifeq ($(CONFIG_AUDIO_ENCODER_SPEEX), y)
-	@echo "Building $(LIBS_SPEEX_NAME) ..."
-	$(if $(LIBS_SPEEX_SRCS), \
-		$(foreach obj, $(LIBS_SPEEX_SRCS), \
-			$(Q)$(shell $(CC) $(LIBS_SPEEX_CFLAGS) $(LIBS_SPEEX_CPPFLAGS) -c -o $(basename $(obj)).o $(obj)) \
-		) \
-		$(Q)$(AR) -crs $(LIBS_SPEEX_NAME) $(addsuffix .o, $(basename $(LIBS_SPEEX_SRCS))) \
-	)
-	@echo "End Building $(LIBS_SPEEX_NAME) ..."
+	$(Q)$(CC) $(LIBS_SPEEX_CFLAGS) $(LIBS_SPEEX_CPPFLAGS) -c $(patsubst %.o,%.c,$@) -o $@
 endif
 
-
-$(LIBS_MP3_SRCS_OBJS):
+$(LIBS_MP3_SRCS_OBJS): $(LIBS_MP3_SRCS)
 ifeq ($(CONFIG_AUDIO_DECODER_MP3), y)
-	@echo "Building $(LIBS_MP3_NAME) ..."
-	$(if $(LIBS_MP3_SRCS), \
-		$(foreach obj, $(LIBS_MP3_SRCS), \
-			$(Q)$(shell $(CC) $(LIBS_MP3_CFLAGS) $(LIBS_MP3_CPPFLAGS) -c -o $(basename $(obj)).o $(obj)) \
-		) \
-		$(Q)$(AR) -crs $(LIBS_MP3_NAME) $(addsuffix .o, $(basename $(LIBS_MP3_SRCS))) \
-	)
-	@echo "End Building $(LIBS_MP3_NAME) ..."
+	$(Q)$(CC) $(LIBS_MP3_CFLAGS) $(LIBS_MP3_CPPFLAGS) -c $(patsubst %.o,%.c,$@) -o $@
 endif
 
-$(LIBS_AMR_SRCS_OBJS):
+$(LIBS_AMR_SRCS_OBJS): $(LIBS_AMR_SRCS)
 ifeq ($(findstring y,$(CONFIG_AUDIO_DECODER_AMR) $(CONFIG_AUDIO_ENCODER_AMR)), y)
-	@echo "Building $(LIBS_AMR_NAME) ..."
-	$(if $(LIBS_AMR_SRCS), \
-		$(foreach obj, $(LIBS_AMR_SRCS), \
-			$(Q)$(shell $(CC) $(LIBS_AMR_CFLAGS) $(LIBS_AMR_CPPFLAGS) -c -o $(basename $(obj)).o $(obj)) \
-		) \
-		$(Q)$(AR) -crs $(LIBS_AMR_NAME) $(addsuffix .o, $(basename $(LIBS_AMR_SRCS))) \
-	)
-	@echo "End Building $(LIBS_AMR_NAME) ..."
+	$(Q)$(CC) $(LIBS_AMR_CFLAGS) $(LIBS_AMR_CPPFLAGS) -c $(patsubst %.o,%.cpp,$@) -o $@
 endif
