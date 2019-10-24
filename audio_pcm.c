@@ -104,7 +104,7 @@ int pcm_prepare(struct pcm *pcm_dev)
 
 int pcm_start(struct pcm *pcm_dev)
 {
-    return audio_device_control(pcm_dev->device, RK_AUDIO_CTL_START, NULL);
+    return 0;//audio_device_control(pcm_dev->device, RK_AUDIO_CTL_START, NULL);
 }
 
 int pcm_stop(struct pcm *pcm_dev)
