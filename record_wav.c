@@ -43,6 +43,7 @@ record_encoder_error_t record_wav_process(struct record_encoder *self)
 {
     record_wav_handle_t wav = (record_wav_handle_t) self->userdata;
     RK_AUDIO_LOG_D("\n");
+    wav->output(wav->userdata, (char *)&m_wav_header, sizeof(m_wav_header));
     while (1)
     {
         int read_bytes = wav->input(wav->userdata, wav->read_buf, sizeof(wav->read_buf));

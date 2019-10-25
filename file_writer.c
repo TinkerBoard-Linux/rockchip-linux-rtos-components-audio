@@ -17,7 +17,8 @@ int file_writer_init_impl(struct record_writer *self,
     }
 
     cfg->frame_size = 4096;
-    self->userdata = (void *)fd;
+    self->fd = (void *)fd;
+    self->userdata = NULL;
     RK_AUDIO_LOG_V("[%s]open native file ok, file: %s, audio type:%s\n",
                    cfg->tag, cfg->target, cfg->type);
 
@@ -27,7 +28,11 @@ int file_writer_init_impl(struct record_writer *self,
 int file_writer_write_impl(struct record_writer *self, char *data,
                            size_t data_len)
 {
-    int fd = (int)self->userdata;
+    int fd = (int)self->fd;
+
+    if (self->userdata)
+        audio_fseek(fd, 0, SEEK_SET);
+    self->userdata = NULL;
 
     return audio_fwrite(data, 1, data_len, fd);
 }
@@ -37,7 +42,7 @@ void file_writer_destroy_impl(struct record_writer *self)
     if (!self)
         return;
 
-    int fd = (int)self->userdata;
+    int fd = (int)self->fd;
 
     audio_fclose(fd);
 }
