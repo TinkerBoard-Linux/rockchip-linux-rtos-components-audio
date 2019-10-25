@@ -587,7 +587,7 @@ void *playback_run(void *data)
         device_cfg.bits = player->bits;
         device_cfg.channels = player->channels;
         device_cfg.card_name = player->name;
-        device_cfg.frame_size = 4096;
+        device_cfg.frame_size = 2048;
         RK_AUDIO_LOG_V("start");
         if (device.open(&device, &device_cfg))
         {

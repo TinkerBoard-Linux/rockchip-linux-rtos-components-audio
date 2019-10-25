@@ -27,7 +27,7 @@ int playback_device_open_impl(struct playback_device *self, playback_device_cfg_
     config.rate = cfg->samplerate ? cfg->samplerate : 16000;
     config.bits = cfg->bits ? cfg->bits : 16;
     config.period_size = cfg->frame_size;
-    config.period_count = 4;
+    config.period_count = 3;
 
     RK_AUDIO_LOG_V("rate:%d bits:%d ch:%d", config.rate, config.bits, config.channels);
     playback_handle = pcm_open(AUDIO_PLAYER_SOUND_CARD, AUDIO_FLAG_WRONLY);
