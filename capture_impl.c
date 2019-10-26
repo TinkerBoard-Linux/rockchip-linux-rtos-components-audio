@@ -25,7 +25,7 @@ int capture_device_open_impl(struct capture_device *self, capture_device_cfg_t *
     config.period_size = cfg->frame_size;
     config.period_count = 4;
 
-    capture_handle = pcm_open(7, AUDIO_FLAG_RDONLY);
+    capture_handle = pcm_open(rkos_audio_get_id(AUDIO_FLAG_RDONLY), AUDIO_FLAG_RDONLY);
     if (!capture_handle)
         return RK_AUDIO_FAILURE;
     if (pcm_set_config(capture_handle, config))

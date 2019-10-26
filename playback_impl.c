@@ -30,7 +30,7 @@ int playback_device_open_impl(struct playback_device *self, playback_device_cfg_
     config.period_count = 3;
 
     RK_AUDIO_LOG_V("rate:%d bits:%d ch:%d", config.rate, config.bits, config.channels);
-    playback_handle = pcm_open(6, AUDIO_FLAG_WRONLY);
+    playback_handle = pcm_open(rkos_audio_get_id(AUDIO_FLAG_WRONLY), AUDIO_FLAG_WRONLY);
     if (!playback_handle)
         return RK_AUDIO_FAILURE;
     if (pcm_set_config(playback_handle, config))
