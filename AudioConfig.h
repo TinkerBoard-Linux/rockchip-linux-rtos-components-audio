@@ -43,16 +43,6 @@
 #define AUDIO_TICK_PER_SEC          CONFIG_FREERTOS_TICK_HZ
 #define AUDIO_TIMER_PERIOD          1
 #define AUDIO_TIMER_ONCE            0
-#ifdef CONFIG_COMPONENTS_PLAYER_SOUND_CARD
-#define AUDIO_PLAYER_SOUND_CARD     CONFIG_COMPONENTS_PLAYER_SOUND_CARD
-#else
-#define AUDIO_PLAYER_SOUND_CARD     "sound0p"
-#endif
-#ifdef CONFIG_COMPONENTS_RECORDER_SOUND_CARD
-#define AUDIO_RECORDER_SOUND_CARD   CONFIG_COMPONENTS_RECORDER_SOUND_CARD
-#else
-#define AUDIO_RECORDER_SOUND_CARD   "sound0c"
-#endif
 
 #ifdef CONFIG_AUDIO_DECODER_MP3
 #define AUDIO_DECODER_MP3
@@ -92,8 +82,6 @@
 #define AUDIO_TICK_PER_SEC          RT_TICK_PER_SECOND
 #define AUDIO_TIMER_PERIOD          RT_TIMER_FLAG_PERIODIC
 #define AUDIO_TIMER_ONCE            RT_TIMER_FLAG_ONE_SHOT
-#define AUDIO_PLAYER_SOUND_CARD     "es8388p"
-#define AUDIO_RECORDER_SOUND_CARD   "adcc"
 
 #ifdef RT_USING_DSP
 #define AUDIO_USING_DSP
@@ -223,7 +211,7 @@ void audio_free_uncache(void *ptr);
 void *audio_calloc(size_t nmemb, size_t size);
 void *audio_realloc(void *ptr, size_t size);
 void *audio_malloc_uncache(size_t size);
-void *audio_device_open(const char *dev_name, int flag);
+void *audio_device_open(const int dev_id, int flag);
 int audio_device_control(void *dev, uint32_t cmd, void *arg);
 int audio_device_close(void *dev);
 unsigned long audio_device_write(void *dev, char *data, unsigned long frames);

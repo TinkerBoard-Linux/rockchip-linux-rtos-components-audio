@@ -19,7 +19,7 @@ struct pcm
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
 #endif
 
-struct pcm *pcm_open(const char *dev_name, int flag)
+struct pcm *pcm_open(const int dev_id, int flag)
 {
     struct pcm *pcm_dev = audio_malloc(sizeof(struct pcm));
     if (pcm_dev == NULL)
@@ -27,7 +27,7 @@ struct pcm *pcm_open(const char *dev_name, int flag)
         RK_AUDIO_LOG_E("pcm malloc failed\n");
         return NULL;
     }
-    void *audio_dev = audio_device_open(dev_name, flag);
+    void *audio_dev = audio_device_open(dev_id, flag);
     if (audio_dev == NULL)
     {
         audio_free(pcm_dev);

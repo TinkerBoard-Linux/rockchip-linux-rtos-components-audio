@@ -116,47 +116,13 @@ void *audio_malloc_uncache(size_t size)
     return rkos_memory_malloc_align(size, 32);
 }
 
-static char *audio_device_name[AUDIO_DEV_MAX] =
-{
-    "sound0p",
-    "sound0c",
-    "sound1p",
-    "sound1c",
-    "sound2p",
-    "sound2c",
-    "sound3p",
-    "sound3c",
-    "sound4p",
-    "sound4c",
-    "sound5p",
-    "sound5c",
-    "sound6p",
-    "sound6c",
-    "sound7p",
-    "sound7c",
-};
-
-static int audio_getid_frome_name(const char *dev_name)
-{
-    int devid;
-
-    for (devid = 0; devid < AUDIO_DEV_MAX; devid++)
-    {
-        if (strcmp(dev_name, audio_device_name[devid]) == 0)
-            return devid;
-    }
-
-    return -1;
-}
-
-void *audio_device_open(const char *dev_name, int flag)
+void *audio_device_open(const int dev_id, int flag)
 {
     DEVICE_CLASS *audio_dev;
-    int dev_id = audio_getid_frome_name(dev_name);
     audio_dev = (DEVICE_CLASS *)rkdev_open(DEV_CLASS_AUDIO, dev_id, 0x00);
     if (audio_dev == NULL)
     {
-        RK_AUDIO_LOG_E("can not open audio device %s.\n", dev_name);
+        RK_AUDIO_LOG_E("can not open audio card %d.\n", dev_id);
         return NULL;
     }
 
@@ -299,23 +265,24 @@ void *audio_malloc_uncache(size_t size)
     return rt_malloc_uncache(size);
 }
 
-static int misc_prepare(void)
+const char *sound_card[5] =
 {
-    GRF->GPIO0A_IOMUX_L = 0x77774444;  // for i2s1 sdi0/sdi1/lrck_rx/sclk_rx
-    GRF->GPIO0A_IOMUX_H = 0x77774444;
-    GRF->GPIO0B_IOMUX_L = 0x00070004;
-
-    GRF->SOC_CON4 = 0x06000600;
-
-    return RT_EOK;
+    "adcc",
+    "pdmc",
+    "es8388c",
+    "es8388p",
+    "audpwmp",
 }
 
-void *audio_device_open(const char *dev_name, int flag)
+void *audio_device_open(const int dev_id, int flag)
 {
     struct rt_device *audio_dev;
+    int devid;
     if (flag == AUDIO_FLAG_WRONLY)
-        misc_prepare();
-    audio_dev = rt_device_find(dev_name);
+        devid = dev_id + 3;
+    else
+        devid = dev_id;
+    audio_dev = rt_device_find(sound_card[devid]);
     if (audio_dev == RT_NULL)
     {
         RK_AUDIO_LOG_E("can not find audio device %s.\n", dev_name);
@@ -409,7 +376,7 @@ int audio_fread(void *buffer, size_t size, size_t count, int stream)
 {
 #if defined(OS_IS_FREERTOS)
     int ret = 0;
-    if(stream == -1)
+    if (stream == -1)
     {
         rk_printf("\naudio_file = %d", stream);
         return 0;

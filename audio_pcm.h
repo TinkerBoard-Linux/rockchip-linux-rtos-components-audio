@@ -222,7 +222,7 @@ enum pcm_param
     PCM_PARAM_TICK_TIME,
 };
 
-struct pcm *pcm_open(const char *dev_name, int flag);
+struct pcm *pcm_open(const int dev_name, int flag);
 int pcm_set_config(struct pcm *pcm_dev, struct pcm_config config);
 int pcm_start(struct pcm *pcm_dev);
 int pcm_prepare(struct pcm *pcm_dev);
