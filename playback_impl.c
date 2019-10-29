@@ -12,30 +12,39 @@ static struct pcm *playback_handle = NULL;
 #define NO_BUFFER_MODE 1
 int playback_device_open_impl(struct playback_device *self, playback_device_cfg_t *cfg)
 {
-    struct pcm_config config;
+    struct pcm_config *config;
 
     if (!playback_handle)
         playback_handle = pcm_open(rkos_audio_get_id(AUDIO_FLAG_WRONLY), AUDIO_FLAG_WRONLY);
     if (!playback_handle)
         return RK_AUDIO_FAILURE;
+    config = audio_malloc(sizeof(struct pcm_config));
+    if (!config)
+    {
+        RK_AUDIO_LOG_E("audio malloc config failed %d Byte\n", sizeof(struct pcm_config));
+        pcm_close(playback_handle);
+        playback_handle = NULL;
+        return RK_AUDIO_FAILURE;
+    }
     if (NO_BUFFER_MODE)
-        config.channels = 2;
+        config->channels = 2;
     else
-        config.channels = cfg->channels ? cfg->channels : 2;
+        config->channels = cfg->channels ? cfg->channels : 2;
 
-    config.rate = cfg->samplerate ? cfg->samplerate : 16000;
-    config.bits = cfg->bits ? cfg->bits : 16;
-    config.period_size = cfg->frame_size;
-    config.period_count = 3;
+    config->rate = cfg->samplerate ? cfg->samplerate : 16000;
+    config->bits = cfg->bits ? cfg->bits : 16;
+    config->period_size = cfg->frame_size;
+    config->period_count = 3;
 
     RK_AUDIO_LOG_D("cfg->frame_size = %d.", cfg->frame_size);
-    RK_AUDIO_LOG_V("rate:%d bits:%d ch:%d", config.rate, config.bits, config.channels);
-    if (pcm_set_config(playback_handle, config))
+    RK_AUDIO_LOG_V("rate:%d bits:%d ch:%d", config->rate, config->bits, config->channels);
+    if (pcm_set_config(playback_handle, *config))
     {
         pcm_close(playback_handle);
         playback_handle = NULL;
         return RK_AUDIO_FAILURE;
     }
+    self->userdata = config;
     RK_AUDIO_LOG_D("Open Playback success.");
 
     return RK_AUDIO_SUCCESS;
@@ -52,7 +61,17 @@ int playback_device_start_impl(struct playback_device *self)
 
 int playback_device_write_impl(struct playback_device *self, const char *data, size_t data_len)
 {
-    int write_err ;
+    int write_err;
+    int periodsize;
+
+    if (self->userdata)
+    {
+        periodsize = ((struct pcm_config *)self->userdata)->period_size;
+        if (data_len < periodsize)
+        {
+            data_len = periodsize;
+        }
+    }
     write_err = pcm_write(playback_handle, (void *)data, data_len);
     if (write_err < 0)
     {

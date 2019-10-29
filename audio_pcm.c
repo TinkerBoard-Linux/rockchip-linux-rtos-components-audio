@@ -140,9 +140,9 @@ int pcm_close(struct pcm *pcm_dev)
 unsigned long pcm_write(struct pcm *pcm_dev, void *data, unsigned long bytes)
 {
     if (pcm_dev->type & PCM_IN)
-        return -1;
+        return PCM_WRONG_TYPE;
     if (bytes != pcm_dev->config.period_size)
-        return -1;
+        return PCM_WRONG_LENGTH;
     unsigned long frames = m_bytes_to_frames(pcm_dev, bytes);
     return audio_device_write(pcm_dev->device, data, frames);
 }
@@ -150,9 +150,9 @@ unsigned long pcm_write(struct pcm *pcm_dev, void *data, unsigned long bytes)
 unsigned long pcm_read(struct pcm *pcm_dev, void *data, unsigned long bytes)
 {
     if (!(pcm_dev->type & PCM_IN))
-        return -1;
+        return PCM_WRONG_TYPE;
     if (bytes != pcm_dev->config.period_size)
-        return -1;
+        return PCM_WRONG_LENGTH;
     unsigned long frames = m_bytes_to_frames(pcm_dev, bytes);
     return audio_device_read(pcm_dev->device, data, frames);
 }

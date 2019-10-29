@@ -642,6 +642,7 @@ void *playback_run(void *data)
             while (1)
             {
                 //OS_LOG_D(player,"playback_run:read frame_size:%d",frame_size);
+                memset(read_buf + oddframe, 0x0, frame_size);
                 read_size = audio_stream_read(player->decode_stream, read_buf + oddframe, frame_size);
                 if (read_size == -1)
                 {

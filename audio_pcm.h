@@ -21,6 +21,12 @@ typedef unsigned int __u32;
 
 enum
 {
+    PCM_WRONG_TYPE = -2,
+    PCM_WRONG_LENGTH = -3,
+};
+
+enum
+{
     SNDRV_PCM_STREAM_PLAYBACK = 0,
     SNDRV_PCM_STREAM_CAPTURE,
     SNDRV_PCM_STREAM_LAST = SNDRV_PCM_STREAM_CAPTURE,
