@@ -62,6 +62,7 @@ static unsigned long m_bytes_to_frames(struct pcm *pcm_dev, unsigned long bytes)
 
 int pcm_set_config(struct pcm *pcm_dev, struct pcm_config config)
 {
+    struct AUDIO_PARAMS aparams;
     int ret;
 
     pcm_dev->config = config;
@@ -83,22 +84,29 @@ int pcm_set_config(struct pcm *pcm_dev, struct pcm_config config)
     memset(abuf->buf, 0x00, config.period_size * config.period_count);
     abuf->buf_size = m_bytes_to_frames(pcm_dev, config.period_size * config.period_count);
     abuf->period_size = m_bytes_to_frames(pcm_dev, config.period_size);
+    aparams.channels = config.channels;
+    aparams.sampleRate = config.rate;
+    aparams.sampleBits = config.bits;
     ret = audio_device_control(pcm_dev->device, RK_AUDIO_CTL_PCM_PREPARE, abuf);
+    if (ret)
+    {
+        audio_free_uncache(abuf->buf);
+        audio_free(abuf);
+        return ret;
+    }
+    ret = audio_device_control(pcm_dev->device, RK_AUDIO_CTL_HW_PARAMS, &aparams);
+    if (ret)
+    {
+        audio_free_uncache(abuf->buf);
+        audio_free(abuf);
+        return ret;
+    }
 
-    pcm_dev->user_data = abuf;
-
-    return ret;
+    return 0;
 }
 
 int pcm_prepare(struct pcm *pcm_dev)
 {
-    struct AUDIO_PARAMS aparams;
-
-    aparams.channels = pcm_dev->config.channels;
-    aparams.sampleRate = pcm_dev->config.rate;
-    aparams.sampleBits = pcm_dev->config.bits;
-    audio_device_control(pcm_dev->device, RK_AUDIO_CTL_HW_PARAMS, &aparams);
-
     return 0;
 }
 
@@ -109,18 +117,20 @@ int pcm_start(struct pcm *pcm_dev)
 
 int pcm_stop(struct pcm *pcm_dev)
 {
-    return audio_device_control(pcm_dev->device, RK_AUDIO_CTL_STOP, NULL);
-}
-
-int pcm_close(struct pcm *pcm_dev)
-{
+    audio_device_control(pcm_dev->device, RK_AUDIO_CTL_STOP, NULL);
+    audio_device_control(pcm_dev->device, RK_AUDIO_CTL_PCM_RELEASE, NULL);
     if (pcm_dev->user_data)
     {
         if (((struct audio_buf *)pcm_dev->user_data)->buf)
             audio_free_uncache(((struct audio_buf *)pcm_dev->user_data)->buf);
         audio_free(pcm_dev->user_data);
     }
-    audio_device_control(pcm_dev->device, RK_AUDIO_CTL_PCM_RELEASE, NULL);
+
+    return 0;
+}
+
+int pcm_close(struct pcm *pcm_dev)
+{
     audio_device_close(pcm_dev->device);
     audio_free(pcm_dev);
 

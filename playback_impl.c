@@ -14,11 +14,10 @@ int playback_device_open_impl(struct playback_device *self, playback_device_cfg_
 {
     struct pcm_config config;
 
-    RK_AUDIO_LOG_D("cfg->frame_size = %d.", cfg->frame_size);
-
-    if (playback_handle)
-        goto OPEN_SUCCESS;
-
+    if (!playback_handle)
+        playback_handle = pcm_open(rkos_audio_get_id(AUDIO_FLAG_WRONLY), AUDIO_FLAG_WRONLY);
+    if (!playback_handle)
+        return RK_AUDIO_FAILURE;
     if (NO_BUFFER_MODE)
         config.channels = 2;
     else
@@ -29,17 +28,14 @@ int playback_device_open_impl(struct playback_device *self, playback_device_cfg_
     config.period_size = cfg->frame_size;
     config.period_count = 3;
 
+    RK_AUDIO_LOG_D("cfg->frame_size = %d.", cfg->frame_size);
     RK_AUDIO_LOG_V("rate:%d bits:%d ch:%d", config.rate, config.bits, config.channels);
-    playback_handle = pcm_open(rkos_audio_get_id(AUDIO_FLAG_WRONLY), AUDIO_FLAG_WRONLY);
-    if (!playback_handle)
-        return RK_AUDIO_FAILURE;
     if (pcm_set_config(playback_handle, config))
     {
         pcm_close(playback_handle);
         playback_handle = NULL;
         return RK_AUDIO_FAILURE;
     }
-OPEN_SUCCESS:
     RK_AUDIO_LOG_D("Open Playback success.");
 
     return RK_AUDIO_SUCCESS;

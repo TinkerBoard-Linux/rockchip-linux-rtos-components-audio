@@ -663,6 +663,7 @@ void *playback_run(void *data)
                     device.stop(&device);
                     RK_AUDIO_LOG_D("play pause");
                     audio_semaphore_take(player->pause_sem);
+                    device.open(&device, &device_cfg);
                     device.start(&device);
                     RK_AUDIO_LOG_D("play resume");
                     /* fall through */
