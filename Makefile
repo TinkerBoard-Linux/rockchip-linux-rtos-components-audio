@@ -13,6 +13,7 @@ include $(ROOT_PATH)/gcc.mk
 # library and objects
 # ----------------------------------------------------------------------------
 LIBS := libaudio.a
+LIBS_RELEASE := libaudio_release.a
 DIRS_IGNORE := ./effect%
 DIRS_IGNORE += ./codec%
 
@@ -38,6 +39,7 @@ INSTALL_PATH := $(ROOT_PATH)/lib
 
 $(LIBS): $(LIBS_CODEC_OBJS) $(OBJS)
 	$(Q)$(AR) -crs $@ $^
+	$(Q)$(CP) -fv $(LIBS) $(ROOT_PATH)/lib/$(LIBS_RELEASE)
 
 $(INSTALL_PATH):
 	$(Q)test -d $(INSTALL_PATH) || mkdir -p $(INSTALL_PATH)
