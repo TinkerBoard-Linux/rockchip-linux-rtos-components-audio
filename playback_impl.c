@@ -93,6 +93,11 @@ int playback_device_stop_impl(struct playback_device *self)
 
     stop_err = pcm_stop(playback_handle);
     RK_AUDIO_LOG_D("stop_err = %d", stop_err);
+    if (self->userdata)
+    {
+        audio_free(self->userdata);
+        self->userdata = NULL;
+    }
     if (stop_err != 0)
         return RK_AUDIO_FAILURE;
 
