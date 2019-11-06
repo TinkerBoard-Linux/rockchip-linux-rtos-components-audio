@@ -42,7 +42,7 @@ int http_preprocessor_init_impl(struct play_preprocessor *self,
     http_socket = -1;
     if (music_need_seek)
     {
-        if (http_open(cfg->target, response, &http_socket, HTTP_GET, NULL, music_seek) != HTTP_STATUS_OK)
+        if (http_open(cfg->target, &response, &http_socket, HTTP_GET, NULL, music_seek) != HTTP_STATUS_OK)
         {
             goto END;
         }
@@ -50,7 +50,7 @@ int http_preprocessor_init_impl(struct play_preprocessor *self,
     }
     else
     {
-        if (http_open(cfg->target, response, &http_socket, HTTP_GET, NULL, 0) != HTTP_STATUS_OK)
+        if (http_open(cfg->target, &response, &http_socket, HTTP_GET, NULL, 0) != HTTP_STATUS_OK)
         {
             goto END;
         }
