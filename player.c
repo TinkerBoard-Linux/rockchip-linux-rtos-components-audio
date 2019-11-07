@@ -636,6 +636,7 @@ void *playback_run(void *data)
                 }
                 audio_mutex_unlock(player->state_lock);
                 device.stop(&device);
+                device.close(&device);
                 continue;
             }
             memset(read_buf, 0, frame_size * 2);
@@ -662,6 +663,7 @@ void *playback_run(void *data)
                 {
                     RK_AUDIO_LOG_D("PLAYER_STATE_PAUSED.");
                     device.stop(&device);
+                    device.close(&device);
                     RK_AUDIO_LOG_D("play pause");
                     audio_semaphore_take(player->pause_sem);
                     if (player->state == PLAYER_STATE_STOP)
@@ -698,6 +700,7 @@ void *playback_run(void *data)
                 audio_free(read_buf);
             }
             device.stop(&device);
+            device.close(&device);
 PLAYBACK_STOP:
             audio_mutex_lock(player->state_lock);
             player->state = PLAYER_STATE_IDLE;
