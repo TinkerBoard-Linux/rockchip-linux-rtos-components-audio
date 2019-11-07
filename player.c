@@ -820,7 +820,7 @@ player_state_t player_get_state(player_handle_t self)
 
 int player_get_cur_time(player_handle_t self)
 {
-    return (total_pcm_cnt * 1000) / 16000;
+    return (total_pcm_cnt * 1000) / self->resample_rate;
 }
 
 int player_stop(player_handle_t self)
