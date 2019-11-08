@@ -694,14 +694,15 @@ void *playback_run(void *data)
                 }
                 oddframe = (oddframe == 0) ? frame_size : 0;
             }
+            device.stop(&device);
+            device.close(&device);
+PLAYBACK_STOP:
             if (read_buf)
             {
                 RK_AUDIO_LOG_D("free read_buf");
                 audio_free(read_buf);
+                read_buf = NULL;
             }
-            device.stop(&device);
-            device.close(&device);
-PLAYBACK_STOP:
             audio_mutex_lock(player->state_lock);
             player->state = PLAYER_STATE_IDLE;
             if (player->listen)
