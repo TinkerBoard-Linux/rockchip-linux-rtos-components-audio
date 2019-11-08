@@ -847,6 +847,7 @@ int player_stop(player_handle_t self)
         {
             audio_sleep(10);
         }
+        self->state = PLAYER_STATE_IDLE;
         self->listen = list_callback;
         result = 0;
         RK_AUDIO_LOG_V("stop player,pause/running state\n");
