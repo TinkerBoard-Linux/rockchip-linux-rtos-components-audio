@@ -31,7 +31,7 @@ struct pcm
 static int pcm_gain_inited = 0;
 struct AUDIO_GAIN_INFO pcm_gain_info;
 /* Generaye by EXP((32-A1)*-1*2.302585093/20) fit to human hearing */
-static char pcm_vol_table[MAX_VOLUME + 1] =
+static char pcm_vol_table[MAX_VOLUME_TABLE + 1] =
 {
     255, 227, 201, 179, 159, 141, 125, 111,
     98, 87, 76, 67, 59, 52, 46, 40,
