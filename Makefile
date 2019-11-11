@@ -38,7 +38,7 @@ INSTALL_PATH := $(ROOT_PATH)/lib
 .PHONY: all install size clean install_clean
 
 $(LIBS): $(LIBS_CODEC_OBJS) $(OBJS)
-	$(Q)$(AR) -crs $@ $^
+	$(Q)$(AR) -crsD $@ $^
 	$(Q)$(CP) -fv $(LIBS) $(ROOT_PATH)/lib/$(LIBS_RELEASE)
 
 $(INSTALL_PATH):
