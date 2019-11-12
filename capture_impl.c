@@ -43,6 +43,11 @@ OPEN_SUCCESS:
 int capture_device_start_impl(struct capture_device *self)
 {
     int cap_ret = 0;
+    if (capture_handle == NULL)
+    {
+        RK_AUDIO_LOG_E("Should call open first\n");
+        return RK_AUDIO_FAILURE;
+    }
 
     RK_AUDIO_LOG_D("\n");
     pcm_prepare(capture_handle);
@@ -67,6 +72,11 @@ int capture_get_volume(void)
 int capture_device_read_impl(struct capture_device *self, const char *data, size_t data_len)
 {
     int read_err = 0;
+    if (capture_handle == NULL)
+    {
+        RK_AUDIO_LOG_E("Should call open first\n");
+        return RK_AUDIO_FAILURE;
+    }
 
     read_err = pcm_read(capture_handle, (void *)data, data_len);
     if (read_err < 0)
@@ -97,6 +107,8 @@ int capture_device_read_impl(struct capture_device *self, const char *data, size
 
 int capture_device_stop_impl(struct capture_device *self)
 {
+    if (capture_handle == NULL)
+        return RK_AUDIO_SUCCESS;
     int stop_err = 0;
 
     RK_AUDIO_LOG_D("\n");

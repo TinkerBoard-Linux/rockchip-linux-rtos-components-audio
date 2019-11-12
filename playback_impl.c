@@ -52,6 +52,11 @@ int playback_device_open_impl(struct playback_device *self, playback_device_cfg_
 
 int playback_device_start_impl(struct playback_device *self)
 {
+    if (playback_handle == NULL)
+    {
+        RK_AUDIO_LOG_E("Should call open first\n");
+        return RK_AUDIO_FAILURE;
+    }
     int err = pcm_prepare(playback_handle);
     err = pcm_start(playback_handle);
     RK_AUDIO_LOG_D("playback_device_start_impl err= %d", err);
@@ -73,6 +78,12 @@ int playback_device_write_impl(struct playback_device *self, const char *data, s
 {
     int write_err;
     int periodsize;
+
+    if (playback_handle == NULL)
+    {
+        RK_AUDIO_LOG_E("Should call open first\n");
+        return RK_AUDIO_FAILURE;
+    }
 
     if (self->userdata)
     {
@@ -98,6 +109,9 @@ int playback_device_write_impl(struct playback_device *self, const char *data, s
 int playback_device_stop_impl(struct playback_device *self)
 {
     int stop_err = 0;
+
+    if (playback_handle == NULL)
+        return RK_AUDIO_SUCCESS;
 
     RK_AUDIO_LOG_V("\n");
 

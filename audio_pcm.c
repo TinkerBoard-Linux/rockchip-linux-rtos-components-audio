@@ -93,6 +93,9 @@ int pcm_set_config(struct pcm *pcm_dev, struct pcm_config config)
     int dB;
     int ret;
 
+    if (!pcm_dev)
+        return RK_AUDIO_FAILURE;
+
     pcm_dev->config = config;
     struct audio_buf *abuf = audio_malloc(sizeof(struct audio_buf));
     if (!abuf)
@@ -253,6 +256,9 @@ int pcm_stop(struct pcm *pcm_dev)
     int i;
     int SysVol = 0;
 
+    if (!pcm_dev)
+        return RK_AUDIO_FAILURE;
+
     /* Fade out handling to anti-pop noise for player */
     if (!(pcm_dev->type & PCM_IN))
     {
@@ -283,6 +289,8 @@ int pcm_stop(struct pcm *pcm_dev)
 
 int pcm_close(struct pcm *pcm_dev)
 {
+    if (!pcm_dev)
+        return RK_AUDIO_FAILURE;
     audio_device_close(pcm_dev->device);
     audio_free(pcm_dev);
 
@@ -291,6 +299,8 @@ int pcm_close(struct pcm *pcm_dev)
 
 unsigned long pcm_write(struct pcm *pcm_dev, void *data, unsigned long bytes)
 {
+    if (!pcm_dev)
+        return RK_AUDIO_FAILURE;
     if (pcm_dev->type & PCM_IN)
         return PCM_WRONG_TYPE;
     if (bytes != pcm_dev->config.period_size)
@@ -301,6 +311,8 @@ unsigned long pcm_write(struct pcm *pcm_dev, void *data, unsigned long bytes)
 
 unsigned long pcm_read(struct pcm *pcm_dev, void *data, unsigned long bytes)
 {
+    if (!pcm_dev)
+        return RK_AUDIO_FAILURE;
     if (!(pcm_dev->type & PCM_IN))
         return PCM_WRONG_TYPE;
     if (bytes != pcm_dev->config.period_size)
