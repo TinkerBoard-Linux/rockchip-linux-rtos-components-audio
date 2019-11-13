@@ -15,7 +15,9 @@ int file_preprocessor_init_impl(struct play_preprocessor *self,
                                 play_preprocessor_cfg_t *cfg)
 {
     int fd = 0;
-    fd = check_native_audio_type(cfg->target, &cfg->type);
+    if (check_native_audio_type(cfg->target, &cfg->type))
+        return RK_AUDIO_FAILURE;
+    fd = audio_fopen(cfg->target, "r");
     if (!fd)
     {
         RK_AUDIO_LOG_E("[%s] open native file error, file: %s",
@@ -48,7 +50,8 @@ int file_preprocessor_read_impl(struct play_preprocessor *self, char *data,
 }
 void file_preprocessor_destroy_impl(struct play_preprocessor *self)
 {
-    if (!self) return;
+    if (!self)
+        return;
     int fd = (int)self->userdata;
     audio_fclose(fd);
 }

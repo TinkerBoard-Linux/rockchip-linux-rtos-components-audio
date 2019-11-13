@@ -9,7 +9,9 @@
 int file_writer_init_impl(struct record_writer *self,
                           record_writer_cfg_t *cfg)
 {
-    int fd = check_native_audio_type(cfg->target, &cfg->type);
+    if (check_native_audio_type(cfg->target, &cfg->type))
+        return RK_AUDIO_FAILURE;
+    int fd = audio_fopen(cfg->target, "w+");
     if (!fd)
     {
         RK_AUDIO_LOG_E("[%s]open native file error, file: %s", cfg->tag, cfg->target);

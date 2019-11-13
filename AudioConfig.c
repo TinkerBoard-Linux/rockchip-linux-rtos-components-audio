@@ -932,7 +932,7 @@ int check_native_audio_type(char *target, char **type)
     if (!p)
     {
         RK_AUDIO_LOG_E("target is NULL");
-        return RK_AUDIO_SUCCESS;
+        return RK_AUDIO_FAILURE;
     }
     if (0 == strcasecmp(p, ".pcm"))
     {
@@ -961,17 +961,8 @@ int check_native_audio_type(char *target, char **type)
     else
     {
         RK_AUDIO_LOG_E("type is NULL\n");
-        return 0;
+        return RK_AUDIO_FAILURE;
     }
 
-    RK_AUDIO_LOG_V("type is %s\n", *type);
-
-    audio_file = audio_fopen(target, "rb");
-    if (audio_file <= 0)
-    {
-        RK_AUDIO_LOG_E("Open %s fail.\n", target);
-        return 0;
-    }
-
-    return audio_file;
+    return RK_AUDIO_SUCCESS;
 }
