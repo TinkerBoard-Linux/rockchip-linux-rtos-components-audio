@@ -38,7 +38,9 @@ int http_preprocessor_init_impl(struct play_preprocessor *self,
     int mem_size = HTTP_DOWNLOAD_FILE_NAME_LENGTH;
     char *response = NULL;
 
+REDO:
     response = (char *) audio_malloc(mem_size * sizeof(char));
+
     http_socket = -1;
     if (music_need_seek)
     {
@@ -62,9 +64,19 @@ int http_preprocessor_init_impl(struct play_preprocessor *self,
     RK_AUDIO_LOG_V("\tHTTP reponse: %d", resp.status_code);
     if (resp.status_code != 200 && resp.status_code != 206)
     {
-        RK_AUDIO_LOG_E("file can't be download,status code: %d\n", resp.status_code);
-        bSucc = RK_AUDIO_FAIL;
-        goto END;
+        if (resp.status_code == 301 || resp.status_code == 302) //301 Moved Permanently / 302 Found
+        {
+            if (response)
+                audio_free(response);
+            cfg->target = resp.httpRedirectURL.pParam;
+            goto REDO;
+        }
+        else
+        {
+            RK_AUDIO_LOG_E("file can't be download,status code: %d\n", resp.status_code);
+            bSucc = RK_AUDIO_FAIL;
+            goto END;
+        }
     }
     RK_AUDIO_LOG_D("\tHTTP file type: %s", resp.content_type);
 
@@ -94,9 +106,9 @@ int http_preprocessor_init_impl(struct play_preprocessor *self,
     self->userdata = (void *)&http_socket;
     cfg->frame_size = HTTP_PREPROCESSOR_FRAME_SIZE;
     RK_AUDIO_LOG_V("[%s] open native http ok, http: %s, audio type:%s",
-           cfg->tag,
-           cfg->target,
-           cfg->type);
+                   cfg->tag,
+                   cfg->target,
+                   cfg->type);
     bSucc = RK_AUDIO_TRUE;
 
 END:
