@@ -331,9 +331,9 @@ int audio_fopen(char *path, char *mode)
 
     FileFd = rkos_file_open(path, mode);
     RK_ASSERT((int)FileFd <= 0x7fffffff);
-    if (FileFd == NULL)
+    if (FileFd <= 0)
     {
-        return RK_AUDIO_FAILURE;
+        return (int)NULL;
     }
     else
     {
