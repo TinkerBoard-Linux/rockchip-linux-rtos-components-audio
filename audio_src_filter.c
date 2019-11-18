@@ -291,12 +291,12 @@ int SRCInit(SRCState *pSRC, unsigned long ulInputRate, unsigned long ulOutputRat
 // streams of samples, thereby performing the sample rate conversion requested
 // by the initial call to SRCInit.    This function works on a pair of mono
 // streams of samples.
-//
+// lNumInputSamplesä¸ºå•å£°é“è¾“å…¥é‡‡æ ·ç‚¹æ•°
+// plNumOutputSamplesä¸ºå•å£°é“è¾“å‡ºé‡‡æ ·ç‚¹æ•°
 //****************************************************************************
 void SRCFilterStereo(SRCState *pSRC, short *psInDataLeft, short *psInDataRight,
                      short *psOutDataLeft, short *psOutDataRight,
-                     long lNumInputSamples, long *plNumOutputSamples)//lNumInputSamplesÎªµ¥ÉùµÀ³¤¶È
-//plNumOutputSamplesÎªµ¥ÉùµÀÊä³ö
+                     long lNumInputSamples, long *plNumOutputSamples)
 {
     long lOutDataLeft, lOutDataRight;
     short *psPtr1, *psPtr2, *psPtr3;
@@ -443,17 +443,16 @@ void SRCFilterStereo(SRCState *pSRC, short *psInDataLeft, short *psInDataRight,
 // SRCFilter runs the sample rate conversion filter over the given streams of
 // samples, thereby performing the sample rate conversion requested
 // by the initial call to SRCInit.
-//long lNumSamples Ë«ÉùµÀ³¤¶È
-// psInLeftÖ¸ÏòbufferµÄ26µÄÎ»ÖÃ
+// long lNumSamples åŒå£°é“é‡‡æ ·ç‚¹æ•°
+// psInLeftæŒ‡å‘bufferçš„26çš„ä½ç½®
 //****************************************************************************
 long SRCFilter(SRCState *pSRC, short *psInLeft, short *psLeft, long lNumSamples)
 {
-    //lNumSamples Ë«ÉùµÀshortÊý¾Ý³¤¶È
     long lLength;
     long lNumOutputSamples;
 
     lLength = lNumSamples >> 1;
     SRCFilterStereo(pSRC, psInLeft, &psInLeft[1], &psLeft[0], &psLeft[1],
                     lLength, &lNumOutputSamples);
-    return (lNumOutputSamples << 1); //·µ»ØË«ÉùµÀ³¤¶È
+    return (lNumOutputSamples << 1); //è¿”å›žåŒå£°é“é•¿åº¦
 }
