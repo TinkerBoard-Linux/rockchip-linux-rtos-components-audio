@@ -564,7 +564,7 @@ _DESTROY_DECODER:
         }
     }
 }
-
+extern void DCB_Doing(void *pIn, int length, int channels);
 void *playback_run(void *data)
 {
     player_handle_t player = (player_handle_t) data;
@@ -679,6 +679,7 @@ void *playback_run(void *data)
                 case PLAYER_STATE_RUNNING:
                 {
                     total_pcm_cnt += (read_size / 4);
+                    DCB_Doing(read_buf + oddframe, read_size / 2, 2);
                     device.write(&device, read_buf + oddframe, read_size);
                     break;
                 }
