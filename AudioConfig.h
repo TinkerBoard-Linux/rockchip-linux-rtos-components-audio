@@ -23,6 +23,7 @@
 #include "kernel/device.h"
 #include "subsys/global.h"
 #include "subsys/SystemApi.h"
+#include "subsys/SysInfoSave.h"
 #include "BSP.h"
 #include "driver/interrupt.h"
 #include "driver/dma.h"
@@ -111,6 +112,15 @@ typedef void *HDC
 #ifndef MAX_VOLUME_TABLE
 #define MAX_VOLUME_TABLE 32
 #endif
+
+#ifdef CONFIG_ENABLE_FADE_IN_FADE_OUT
+#define PLAYER_FADE_IN      1
+#define PLAYER_FADE_OUT     1
+#else
+#define PLAYER_FADE_IN      0
+#define PLAYER_FADE_OUT     0
+#endif
+#define FADE_OUT_DELAY_MS   1
 
 #define RK_AUDIO_LOG_LEVEL_D    4
 #define RK_AUDIO_LOG_LEVEL_V    3

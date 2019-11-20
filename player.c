@@ -758,6 +758,7 @@ int player_play(player_handle_t self, play_cfg_t *cfg)
     player_handle_t player = self;
     media_sdk_msg_t msg ;
     char *targetBuf = NULL;
+    int time_out = 300;
 
     g_player_freq = cfg->freq_t;
     player_freq_init();
@@ -805,7 +806,30 @@ int player_play(player_handle_t self, play_cfg_t *cfg)
     music_frame_offset = 0;
     total_pcm_cnt = 0;
     msg.player.end_session = false;
+#if PLAYER_FADE_IN
+    int vol = gSysConfig.OutputVolume;
+    if (vol)
+        playback_set_volume(0);
+#endif
     audio_queue_send(player->preprocess_queue, &msg);
+#if PLAYER_FADE_IN
+    while ((self->state != PLAYER_STATE_RUNNING) && (self->state != PLAYER_STATE_ERROR))
+    {
+        audio_sleep(10);
+        time_out--;
+        if (!time_out)
+            break;
+    }
+    if (vol)
+    {
+        for (int i = 2; i < vol; i += 2)
+        {
+            playback_set_volume(i);
+            rkos_sleep(FADE_OUT_DELAY_MS);
+        }
+        playback_set_volume(vol);
+    }
+#endif
 
     return RK_AUDIO_SUCCESS;
 }
@@ -828,10 +852,26 @@ int player_stop(player_handle_t self)
 {
     player_state_t state;
     int result;
+    int vol = 0;
     player_listen_cb list_callback;
     audio_mutex_lock(self->state_lock);
     if (self->state)
     {
+#if PLAYER_FADE_OUT
+        if (self->state == PLAYER_STATE_RUNNING)
+        {
+            /* fade out */
+            vol = gSysConfig.OutputVolume;
+            if (vol)
+            {
+                for (int i = vol; i > 0; i -= 2)
+                {
+                    playback_set_volume(i);
+                    rkos_sleep(FADE_OUT_DELAY_MS);
+                }
+            }
+        }
+#endif
         list_callback = self->listen; //force stop not callback
         self->listen = NULL;
         audio_stream_stop(self->preprocess_stream);
@@ -847,6 +887,10 @@ int player_stop(player_handle_t self)
         {
             audio_sleep(10);
         }
+#if PLAYER_FADE_OUT
+        if (vol)
+            playback_set_volume(vol);
+#endif
         self->state = PLAYER_STATE_IDLE;
         self->listen = list_callback;
         result = 0;

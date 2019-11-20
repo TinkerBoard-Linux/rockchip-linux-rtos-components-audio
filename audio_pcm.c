@@ -13,7 +13,6 @@ struct
     int dB;
     bool changed;
 } play_vol, rec_vol;
-#define FADE_OUT_DELAY_MS   3
 
 struct pcm
 {
@@ -253,24 +252,8 @@ int pcm_start(struct pcm *pcm_dev)
 
 int pcm_stop(struct pcm *pcm_dev)
 {
-    int i;
-    int SysVol = 0;
-
     if (!pcm_dev)
         return RK_AUDIO_FAILURE;
-
-    /* Fade out handling to anti-pop noise for player */
-    if (!(pcm_dev->type & PCM_IN))
-    {
-        SysVol = SystemGetVol(pcm_dev->device);
-        if (SysVol > MAX_VOLUME)
-            SysVol = 0;
-        for (i = SysVol; i > 0; i--)
-        {
-            SystemSetVol(pcm_dev->device, i);
-            rkos_sleep(FADE_OUT_DELAY_MS);
-        }
-    }
 
     audio_device_control(pcm_dev->device, RK_AUDIO_CTL_STOP, NULL);
     audio_device_control(pcm_dev->device, RK_AUDIO_CTL_PCM_RELEASE, NULL);
@@ -280,8 +263,6 @@ int pcm_stop(struct pcm *pcm_dev)
             audio_free_uncache(((struct audio_buf *)pcm_dev->user_data)->buf);
         audio_free(pcm_dev->user_data);
     }
-    if (SysVol)
-        SystemSetVol(pcm_dev->device, SysVol);
     pcm_dev->prepared = RK_AUDIO_FAIL;
 
     return 0;
