@@ -8,7 +8,7 @@
 #include "audio_pcm.h"
 
 static struct pcm *playback_handle = NULL;
-
+static int opened = 0;
 #define NO_BUFFER_MODE 1
 int playback_device_open_impl(struct playback_device *self, playback_device_cfg_t *cfg)
 {
@@ -18,7 +18,10 @@ int playback_device_open_impl(struct playback_device *self, playback_device_cfg_
         playback_handle = pcm_open(rkos_audio_get_id(AUDIO_FLAG_WRONLY), AUDIO_FLAG_WRONLY);
     if (!playback_handle)
         return RK_AUDIO_FAILURE;
-    config = audio_malloc(sizeof(struct pcm_config));
+    if (self->userdata)
+        config = self->userdata;
+    else
+        config = audio_malloc(sizeof(struct pcm_config));
     if (!config)
     {
         RK_AUDIO_LOG_E("audio malloc config failed %d Byte\n", sizeof(struct pcm_config));
@@ -38,7 +41,7 @@ int playback_device_open_impl(struct playback_device *self, playback_device_cfg_
 
     RK_AUDIO_LOG_D("cfg->frame_size = %d.", cfg->frame_size);
     RK_AUDIO_LOG_V("rate:%d bits:%d ch:%d", config->rate, config->bits, config->channels);
-    if (pcm_set_config(playback_handle, *config))
+    if (!opened && pcm_set_config(playback_handle, *config))
     {
         pcm_close(playback_handle);
         playback_handle = NULL;
@@ -46,6 +49,7 @@ int playback_device_open_impl(struct playback_device *self, playback_device_cfg_
     }
     self->userdata = config;
     RK_AUDIO_LOG_D("Open Playback success.");
+    opened = 1;
 
     return RK_AUDIO_SUCCESS;
 }
@@ -138,9 +142,11 @@ int playback_device_abort_impl(struct playback_device *self)
 void playback_device_close_impl(struct playback_device *self)
 {
     RK_AUDIO_LOG_D("\n");
+
     if (playback_handle)
     {
         pcm_close(playback_handle);
     }
     playback_handle = NULL;
+    opened = 0;
 }

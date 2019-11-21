@@ -25,6 +25,12 @@ audio_player_semaphore_handle audio_semaphore_create(void)
     return rkos_semaphore_create(1, 0);
 }
 
+
+int audio_semaphore_try_take(audio_player_semaphore_handle self)
+{
+    return rkos_semaphore_take(self, 0);
+}
+
 int audio_semaphore_take(audio_player_semaphore_handle self)
 {
     return rkos_semaphore_take(self, -1);

@@ -582,6 +582,7 @@ void *playback_run(void *data)
     playback_device_cfg_t device_cfg;
     media_sdk_msg_t msg;
     char *read_buf = NULL;
+    char *mute_buf = NULL;
     int read_size;
     size_t frame_size;
     static size_t oddframe = 0;
@@ -672,17 +673,16 @@ void *playback_run(void *data)
                 case PLAYER_STATE_PAUSED:
                 {
                     RK_AUDIO_LOG_D("PLAYER_STATE_PAUSED.");
-                    device.stop(&device);
-                    device.close(&device);
                     RK_AUDIO_LOG_D("play pause");
-                    audio_semaphore_take(player->pause_sem);
+                    mute_buf = (oddframe == 0) ? (read_buf + frame_size) : read_buf;
+                    memset(mute_buf, 0x0, frame_size);
+                    while (audio_semaphore_try_take(player->pause_sem))
+                        device.write(&device, mute_buf, frame_size);
                     if (player->state == PLAYER_STATE_STOP)
                     {
                         RK_AUDIO_LOG_D("play resume->stop");
                         goto PLAYBACK_STOP;
                     }
-                    device.open(&device, &device_cfg);
-                    device.start(&device);
                     RK_AUDIO_LOG_D("play resume");
                     /* fall through */
                 }
@@ -704,8 +704,6 @@ void *playback_run(void *data)
                 }
                 oddframe = (oddframe == 0) ? frame_size : 0;
             }
-            device.stop(&device);
-            device.close(&device);
 PLAYBACK_STOP:
             if (read_buf)
             {
@@ -971,6 +969,10 @@ int player_wait_idle(player_handle_t self)
 int player_close(player_handle_t self)
 {
     playback_device_t device = self->device;
+
+    if (self->state)
+        player_stop(self);
+    device.stop(&device);
     device.close(&device);
 
     return RK_AUDIO_SUCCESS;
@@ -983,6 +985,9 @@ void player_destroy(player_handle_t self)
     RK_AUDIO_LOG_D("player_destory in");
     if (player)
     {
+        if (player->state)
+            player_stop(player);
+        device.stop(&device);
         device.close(&device);
         audio_queue_destroy(player->preprocess_queue);
         audio_queue_destroy(player->decode_queue);

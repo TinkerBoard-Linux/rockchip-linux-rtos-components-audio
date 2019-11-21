@@ -215,6 +215,7 @@ audio_player_thread_handle audio_thread_create(char *name, uint32_t StackDeep, u
 void audio_thread_exit(audio_player_thread_handle self);
 audio_player_semaphore_handle audio_semaphore_create(void);
 int audio_semaphore_take(audio_player_semaphore_handle self);
+int audio_semaphore_try_take(audio_player_semaphore_handle self);
 int audio_semaphore_give(audio_player_semaphore_handle self);
 void audio_semaphore_destroy(audio_player_semaphore_handle self);
 audio_player_mutex_handle audio_mutex_create(void);
