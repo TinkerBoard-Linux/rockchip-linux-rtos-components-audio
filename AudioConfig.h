@@ -113,7 +113,7 @@ typedef void *HDC
 #define MAX_VOLUME_TABLE 32
 #endif
 
-#ifdef CONFIG_ENABLE_FADE_IN_FADE_OUT
+#ifdef CONFIG_COMPONENTS_PLAYER_FADE_IN_FADE_OUT
 #define PLAYER_FADE_IN      1
 #define PLAYER_FADE_OUT     1
 #else
