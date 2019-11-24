@@ -149,6 +149,26 @@ unsigned long audio_device_read(void *dev, char *data, unsigned long frames)
     return rkdev_read(dev, 0, data, frames);
 }
 
+void audio_device_set_vol(void *dev, uint32 vol)
+{
+    SystemSetVol(dev, vol);
+}
+
+int audio_device_get_vol(void *dev)
+{
+    return SystemGetVol(dev);
+}
+
+void audio_device_set_gain(void *dev, uint32 dB)
+{
+    SystemSetGain(dev, RECORD_CARD_CHANNEL_ALL, dB);
+}
+
+int audio_device_get_gain(void *dev)
+{
+    return SystemGetGain(dev, RECORD_CARD_CHANNEL_ALL);
+}
+
 void audio_sleep(uint32_t ms)
 {
     rkos_sleep(ms);
@@ -316,6 +336,26 @@ unsigned long audio_device_write(void *dev, char *data, unsigned long frames)
 unsigned long audio_device_read(void *dev, char *data, unsigned long frames)
 {
     return rt_device_read(dev, 0, data, frames);
+}
+
+void audio_device_set_vol(void *dev, uint32 vol)
+{
+
+}
+
+int audio_device_get_vol(void *dev)
+{
+
+}
+
+void audio_device_set_gain(void *dev, uint32 dB)
+{
+
+}
+
+int audio_device_get_gain(void *dev)
+{
+
 }
 
 void audio_sleep(uint32_t ms)

@@ -27,23 +27,6 @@ struct pcm
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
 #endif
 
-static int pcm_gain_inited = 0;
-struct AUDIO_GAIN_INFO pcm_gain_info;
-/* Generaye by EXP((32-A1)*-1*2.302585093/20) fit to human hearing */
-static char pcm_vol_table[MAX_VOLUME_TABLE + 1] =
-{
-    255, 227, 201, 179, 159, 141, 125, 111,
-    98, 87, 76, 67, 59, 52, 46, 40,
-    35, 31, 27, 23, 20, 17, 15, 12,
-    10, 9, 7, 6, 4, 3, 2, 1, 0
-};
-
-void pcm_gain_init(void *dev)
-{
-    rkdev_control(dev, RK_AUDIO_CTL_GET_GAIN_INFO, &pcm_gain_info);
-    pcm_gain_inited = 1;
-}
-
 struct pcm *pcm_open(const int dev_id, int flag)
 {
     struct pcm *pcm_dev = audio_malloc(sizeof(struct pcm));
@@ -132,19 +115,16 @@ int pcm_set_config(struct pcm *pcm_dev, struct pcm_config config)
         return ret;
     }
     pcm_dev->prepared = RK_AUDIO_TRUE;
-    if (!pcm_gain_inited)
-        pcm_gain_init(pcm_dev->device);
     if (rec_vol.changed && pcm_dev->type == PCM_IN)
     {
-        audio_device_control(pcm_dev->device, RK_AUDIO_CTL_SET_GAIN, &rec_vol.dB);
-        audio_device_control(pcm_dev->device, RK_AUDIO_CTL_GET_GAIN, &rec_vol.dB);
+        audio_device_set_gain(pcm_dev->device, rec_vol.dB);
+        rec_vol.dB = audio_device_get_gain(pcm_dev->device);
         rec_vol.changed = RK_AUDIO_FAIL;
     }
     if (play_vol.changed && pcm_dev->type == PCM_OUT)
     {
-        int dB = play_vol.vol ? (0 - pcm_vol_table[play_vol.vol] * pcm_gain_info.step) : pcm_gain_info.mindB;
-        audio_device_control(pcm_dev->device, RK_AUDIO_CTL_SET_GAIN, &dB);
-        audio_device_control(pcm_dev->device, RK_AUDIO_CTL_GET_GAIN, &play_vol.dB);
+        audio_device_set_vol(pcm_dev->device, play_vol.vol);
+        play_vol.vol = audio_device_get_vol(pcm_dev->device);
         play_vol.changed = RK_AUDIO_FAIL;
     }
 
@@ -174,21 +154,16 @@ int pcm_set_volume(struct pcm *pcm_dev, int vol, int flag)
             return RK_AUDIO_FAILURE;
         }
     }
-    if (!pcm_gain_inited)
-        pcm_gain_init(pcm_dev->device);
     switch (flag)
     {
     case AUDIO_FLAG_RDONLY:
-        rec_vol.dB = vol;
-        audio_device_control(pcm_dev->device, RK_AUDIO_CTL_SET_GAIN, &rec_vol.dB);
-        audio_device_control(pcm_dev->device, RK_AUDIO_CTL_GET_GAIN, &rec_vol.dB);
+        audio_device_set_gain(pcm_dev->device, vol);
+        rec_vol.dB = audio_device_get_gain(pcm_dev->device);
         return RK_AUDIO_SUCCESS;
 
     case AUDIO_FLAG_WRONLY:
-        play_vol.vol = vol;
-        dB = vol ? (0 - pcm_vol_table[vol] * pcm_gain_info.step) : pcm_gain_info.mindB;
-        audio_device_control(pcm_dev->device, RK_AUDIO_CTL_SET_GAIN, &dB);
-        audio_device_control(pcm_dev->device, RK_AUDIO_CTL_GET_GAIN, &play_vol.dB);
+        audio_device_set_vol(pcm_dev->device, vol);
+        play_vol.vol = audio_device_get_vol(pcm_dev->device);
         return RK_AUDIO_SUCCESS;
 
     default:
@@ -216,23 +191,15 @@ int pcm_get_volume(struct pcm *pcm_dev, int flag)
             return RK_AUDIO_FAILURE;
         }
     }
-    if (!pcm_gain_inited)
-        pcm_gain_init(pcm_dev->device);
     switch (flag)
     {
     case AUDIO_FLAG_RDONLY:
-        audio_device_control(pcm_dev->device, RK_AUDIO_CTL_GET_GAIN, &rec_vol.dB);
+        rec_vol.dB = audio_device_get_gain(pcm_dev->device);
         return rec_vol.dB;
 
     case AUDIO_FLAG_WRONLY:
-        audio_device_control(pcm_dev->device, RK_AUDIO_CTL_GET_GAIN, &play_vol.dB);
-        vol = -play_vol.dB / pcm_gain_info.step;
-        for (i = 0; i <= MAX_VOLUME; i++)
-        {
-            if (pcm_vol_table[i] == vol)
-                return i;
-        }
-        return play_vol.dB;
+        play_vol.vol = audio_device_get_vol(pcm_dev->device);
+        return play_vol.vol;
 
     default:
         RK_AUDIO_LOG_E("unsupport flag:%d\n", flag);

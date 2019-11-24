@@ -122,6 +122,11 @@ typedef void *HDC
 #endif
 #define FADE_OUT_DELAY_MS   1
 
+#define RECORD_CARD_CHANNEL_0   0
+#define RECORD_CARD_CHANNEL_1   1
+#define RECORD_CARD_CHANNEL_2   2
+#define RECORD_CARD_CHANNEL_ALL 3
+
 #define RK_AUDIO_LOG_LEVEL_D    4
 #define RK_AUDIO_LOG_LEVEL_V    3
 #define RK_AUDIO_LOG_LEVEL_W    2
@@ -232,6 +237,10 @@ int audio_device_control(void *dev, uint32_t cmd, void *arg);
 int audio_device_close(void *dev);
 unsigned long audio_device_write(void *dev, char *data, unsigned long frames);
 unsigned long audio_device_read(void *dev, char *data, unsigned long frames);
+void audio_device_set_vol(void *dev, uint32 vol);
+int audio_device_get_vol(void *dev);
+void audio_device_set_gain(void *dev, uint32 dB);
+int audio_device_get_gain(void *dev);
 void audio_sleep(uint32_t ms);
 int audio_fopen(char *path, char *mode);
 int audio_fread(void *buffer, size_t size, size_t count, int stream);
