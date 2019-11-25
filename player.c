@@ -54,6 +54,7 @@ struct player
     struct audio_player_stream *preprocess_stream;
     struct audio_player_stream *decode_stream;
 
+    audio_player_mutex_handle play_lock;
     audio_player_mutex_handle state_lock;
     audio_player_semaphore_handle pause_sem;
 
@@ -728,6 +729,7 @@ player_handle_t player_create(player_cfg_t *cfg)
         player->preprocess_stream = audio_stream_create(cfg->preprocess_buf_size);
         player->decode_stream = audio_stream_create(cfg->decode_buf_size);
         player->state_lock = audio_mutex_create();
+        player->play_lock = audio_mutex_create();
         player->pause_sem = audio_semaphore_create();
         player->tag = cfg->tag;
         player->listen = cfg->listen;
@@ -761,8 +763,11 @@ int player_play(player_handle_t self, play_cfg_t *cfg)
     char *targetBuf = NULL;
     int time_out = 300;
 
+    audio_mutex_lock(player->play_lock);
     g_player_freq = cfg->freq_t;
     player_freq_init();
+    if (player->state == PLAYER_STATE_RUNNING)
+        player_stop(player);
 
     // audio_mutex_lock(player->state_lock);
     // player->state = PLAYER_STATE_RUNNING;
@@ -813,7 +818,6 @@ int player_play(player_handle_t self, play_cfg_t *cfg)
         playback_set_volume(0);
 #endif
     audio_queue_send(player->preprocess_queue, &msg);
-#if PLAYER_FADE_IN
     while ((self->state != PLAYER_STATE_RUNNING) && (self->state != PLAYER_STATE_ERROR))
     {
         audio_sleep(10);
@@ -821,6 +825,7 @@ int player_play(player_handle_t self, play_cfg_t *cfg)
         if (!time_out)
             break;
     }
+#if PLAYER_FADE_IN
     if (vol)
     {
         for (int i = 2; i < vol; i += 2)
@@ -831,6 +836,7 @@ int player_play(player_handle_t self, play_cfg_t *cfg)
         playback_set_volume(vol);
     }
 #endif
+    audio_mutex_unlock(player->play_lock);
 
     return RK_AUDIO_SUCCESS;
 }
@@ -976,6 +982,7 @@ void player_destroy(player_handle_t self)
         audio_stream_destroy(player->preprocess_stream);
         audio_stream_destroy(player->decode_stream);
         audio_mutex_destroy(player->state_lock);
+        audio_mutex_destroy(player->play_lock);
         audio_semaphore_destroy(player->pause_sem);
         audio_thread_exit(player->preprocess_task);
         audio_thread_exit(player->decode_task);
