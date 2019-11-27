@@ -9,12 +9,23 @@
 #include "audio_pcm.h"
 
 static struct pcm *capture_handle = NULL;
+static audio_player_mutex_handle capture_lock = NULL;
 
 int capture_device_open_impl(struct capture_device *self, capture_device_cfg_t *cfg)
 {
     struct pcm_config config;
 
     RK_AUDIO_LOG_D("cfg->frame_size = %d.\n", cfg->frame_size);
+    if (!capture_lock)
+    {
+        capture_lock = audio_mutex_create();
+        if (!capture_lock)
+        {
+            RK_AUDIO_LOG_E("capture lock create failed!");
+            return RK_AUDIO_FAILURE;
+        }
+    }
+    audio_mutex_lock(capture_lock);
 
     if (capture_handle)
         goto OPEN_SUCCESS;
@@ -135,6 +146,7 @@ int capture_device_close_impl(struct capture_device *self)
         pcm_close(capture_handle);
     }
     capture_handle = NULL;
+    audio_mutex_unlock(capture_lock);
 
     return RK_AUDIO_SUCCESS;
 }
