@@ -860,7 +860,7 @@ int player_stop(player_handle_t self)
     player_state_t state;
     int result;
     int vol = 0;
-    player_listen_cb list_callback;
+    //player_listen_cb list_callback;
     audio_mutex_lock(self->state_lock);
     if (self->state)
     {
@@ -879,8 +879,8 @@ int player_stop(player_handle_t self)
             }
         }
 #endif
-        list_callback = self->listen; //force stop not callback
-        self->listen = NULL;
+        //list_callback = self->listen; //force stop not callback
+        //self->listen = NULL;
         audio_stream_stop(self->preprocess_stream);
         RK_AUDIO_LOG_D("audio_stream_stop preprocess_stream");
         audio_stream_stop(self->decode_stream);
@@ -899,7 +899,7 @@ int player_stop(player_handle_t self)
             playback_set_volume(vol);
 #endif
         self->state = PLAYER_STATE_IDLE;
-        self->listen = list_callback;
+        //self->listen = list_callback;
         result = 0;
         RK_AUDIO_LOG_V("stop player,pause/running state\n");
     }
