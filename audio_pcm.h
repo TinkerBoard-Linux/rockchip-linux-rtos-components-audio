@@ -35,6 +35,7 @@ enum
 /* Configuration for a stream */
 struct pcm_config
 {
+    unsigned int want_ch;
     unsigned int channels;
     unsigned int rate;
     unsigned int bits;

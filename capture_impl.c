@@ -8,12 +8,14 @@
 #include "AudioConfig.h"
 #include "audio_pcm.h"
 
+#define CAPTURE_ALWAYS_4CH  1
+
 static struct pcm *capture_handle = NULL;
 static audio_player_mutex_handle capture_lock = NULL;
+struct pcm_config *g_config = NULL;
 
 int capture_device_open_impl(struct capture_device *self, capture_device_cfg_t *cfg)
 {
-    struct pcm_config config;
 
     RK_AUDIO_LOG_D("cfg->frame_size = %d.\n", cfg->frame_size);
     if (!capture_lock)
@@ -29,23 +31,28 @@ int capture_device_open_impl(struct capture_device *self, capture_device_cfg_t *
 
     if (capture_handle)
         goto OPEN_SUCCESS;
-
-    config.channels = cfg->channels ? cfg->channels : 2;
-    config.rate = cfg->samplerate ? cfg->samplerate : 16000;
-    config.bits = cfg->bits ? cfg->bits : 16;
-    config.period_size = cfg->frame_size;
-    config.period_count = 4;
+    g_config = audio_malloc(sizeof(struct pcm_config));
+#if CAPTURE_ALWAYS_4CH
+    g_config->channels = 4;
+#else
+    g_config->channels = cfg->channels ? cfg->channels : 2;
+#endif
+    g_config->rate = cfg->samplerate ? cfg->samplerate : 16000;
+    g_config->bits = cfg->bits ? cfg->bits : 16;
+    g_config->period_size = cfg->frame_size;
+    g_config->period_count = 4;
 
     capture_handle = pcm_open(rkos_audio_get_id(AUDIO_FLAG_RDONLY), AUDIO_FLAG_RDONLY);
     if (!capture_handle)
         return RK_AUDIO_FAILURE;
-    if (pcm_set_config(capture_handle, config))
+    if (pcm_set_config(capture_handle, *g_config))
     {
         pcm_close(capture_handle);
         capture_handle = NULL;
         return RK_AUDIO_FAILURE;
     }
 OPEN_SUCCESS:
+
     RK_AUDIO_LOG_V("Open Capture success.\n");
 
     return RK_AUDIO_SUCCESS;
@@ -96,7 +103,6 @@ int capture_device_read_impl(struct capture_device *self, const char *data, size
     }
     if (read_err == -EINVAL)
     {
-
         pcm_prepare(capture_handle);
     }
 
@@ -118,6 +124,9 @@ int capture_device_read_impl(struct capture_device *self, const char *data, size
 
 int capture_device_stop_impl(struct capture_device *self)
 {
+#if CAPTURE_ALWAYS_4CH
+    return RK_AUDIO_SUCCESS;
+#endif
     if (capture_handle == NULL)
         return RK_AUDIO_SUCCESS;
     int stop_err = 0;
@@ -141,12 +150,18 @@ int capture_device_abort_impl(struct capture_device *self)
 int capture_device_close_impl(struct capture_device *self)
 {
     RK_AUDIO_LOG_D("\n");
+#if CAPTURE_ALWAYS_4CH
+    audio_mutex_unlock(capture_lock);
+#else
     if (capture_handle)
     {
+        audio_free(g_config);
+        g_config = NULL;
         pcm_close(capture_handle);
     }
     capture_handle = NULL;
     audio_mutex_unlock(capture_lock);
+#endif
 
     return RK_AUDIO_SUCCESS;
 }
