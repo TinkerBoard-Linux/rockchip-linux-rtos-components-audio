@@ -160,8 +160,8 @@ play_decoder_error_t play_mp3_process_impl(struct play_decoder *self)
         else if (read_bytes == -1)
         {
             RK_AUDIO_LOG_E("mp3 read fail");
-            //return PLAY_DECODER_INPUT_ERROR;
-            return RK_AUDIO_SUCCESS;
+            return PLAY_DECODER_INPUT_ERROR;
+            //return RK_AUDIO_SUCCESS;
         }
         else
         {

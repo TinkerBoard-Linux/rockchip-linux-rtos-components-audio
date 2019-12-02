@@ -232,7 +232,7 @@ retry:
                 if (timeout > 20)
                 {
                     //more than 10s exit
-                    audio_stream_finish(player->preprocess_stream);
+                    audio_stream_stop(player->preprocess_stream);
                     break;
                 }
                 RK_AUDIO_LOG_D("player state = %d", player->state);
@@ -483,17 +483,26 @@ void *decoder_run(void *data)
             RK_AUDIO_LOG_V("decode res %#x", decode_res);
             switch (decode_res)
             {
-#if 0
+
             case PLAY_DECODER_INPUT_ERROR:
                 RK_AUDIO_LOG_E("PLAY_DECODER_INPUT_ERROR");
-                audio_mutex_lock(player->state_lock);
-                player->state = PLAYER_STATE_ERROR;
-                if (player->listen)
+#ifdef CONFIG_FWANALYSIS_SEGMENT
+                FW_RemoveSegment(decoder.segment);
+#endif
+                audio_stream_stop(player->decode_stream);
+                audio_stream_stop(player->preprocess_stream);
+                if (!decoder.get_post_state(&decoder))
                 {
-                    player->listen(player, PLAY_INFO_IDLE, player->userdata);
+                    audio_mutex_lock(player->state_lock);
+                    player->state = PLAYER_STATE_ERROR;
+                    if (player->listen)
+                    {
+                        player->listen(player, PLAY_INFO_IDLE, player->userdata);
+                    }
+                    audio_mutex_unlock(player->state_lock);
                 }
-                audio_mutex_unlock(player->state_lock);
                 break;
+#if 0
             case PLAY_DECODER_OUTPUT_ERROR:
                 RK_AUDIO_LOG_E("PLAY_DECODER_OUTPUT_ERROR");
                 audio_stream_stop(player->preprocess_stream);
