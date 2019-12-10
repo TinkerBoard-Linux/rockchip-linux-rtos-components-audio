@@ -12,13 +12,6 @@ extern "C" {
 
 #include "audio_server.h"
 
-struct wav_config
-{
-    int sample_rate;
-    int bits;
-    int channels;
-};
-
 int record_wav_init(struct record_encoder *self, record_encoder_cfg_t *cfg);
 record_encoder_error_t record_wav_process(struct record_encoder *self);
 bool record_wav_get_post_state(struct record_encoder *self);
