@@ -302,7 +302,7 @@ void encoder_run(void *data)
                 wav_cfg.sample_rate = recorder->samplerate;
                 wav_cfg.bits = recorder->bits;
                 wav_cfg.channels = recorder->channels;
-                rk_dcache_ops(RK_HW_CACHE_CLEAN, recorder, sizeof(recorder));
+                rk_dcache_ops(RK_HW_CACHE_CLEAN, recorder, sizeof(struct recorder));
                 encoder.userdata = &wav_cfg;
                 g_wav_encode = 1;
             }
