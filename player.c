@@ -79,6 +79,7 @@ struct player
     int channels;
 
     int resample_rate;
+    int out_ch;
 };
 
 void player_freq_init(void)
@@ -315,6 +316,9 @@ int decoder_output(void *userdata, char *data, size_t data_len)
     player_handle_t player = (player_handle_t) userdata;
     int i = 0;
     int j = 0;
+    float data_l;
+    float data_r;
+    float data_mix;
     int frame_bytes = player->bits / 8;
     int isMono = (player->channels == 1) ? 1 : 0;
     /* if MONO, copy left channel data stream to right channels. */
@@ -327,6 +331,21 @@ int decoder_output(void *userdata, char *data, size_t data_len)
             memcpy(data + i, data + j, frame_bytes);
             memcpy(data + i + frame_bytes, data + j, frame_bytes);
             j -= frame_bytes;
+        }
+    }
+    else if (player->out_ch == 1)
+    {
+        for (i = 0; i < data_len / 2; i += 2)
+        {
+            data_l = (float)(((short *)data)[i]);
+            data_r = (float)(((short *)data)[i + 1]);
+            if (data_l > 0.0 && data_r > 0.0)
+                data_mix = data_l + data_r - data_l * data_r / INT16_MAX;
+            else if (data_l < 0.0 && data_r < 0.0)
+                data_mix = data_l + data_r - data_l * data_r / INT16_MIN;
+            else
+                data_mix = data_l + data_r;
+            ((short *)data)[i + 1] = ((short *)data)[i] = (short)data_mix;
         }
     }
     if (g_is_need_resample)
@@ -743,6 +762,7 @@ player_handle_t player_create(player_cfg_t *cfg)
         player->name = cfg->name;
         player->device = cfg->device;
         player->resample_rate = cfg->resample_rate;
+        player->out_ch = cfg->out_ch == 1 ? 1 : 2;
         player->state = PLAYER_STATE_IDLE;
 
         audio_thread_cfg_t c =
