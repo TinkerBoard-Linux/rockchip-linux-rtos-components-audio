@@ -159,8 +159,10 @@ void write_run(void *data)
         {
             if (res)
             {
-                RK_AUDIO_LOG_E("writer init err go to write out\n");
-                goto __write_OUT;
+                RK_AUDIO_LOG_E("writer init err\n");
+                audio_stream_stop(recorder->record_stream);
+                audio_stream_stop(recorder->encode_stream);
+                continue;
             }
             read_buf = (char *)audio_malloc(frame_size);
             if (!read_buf)
@@ -225,8 +227,6 @@ void write_run(void *data)
             writer.destroy(&writer);
         }
     }
-__write_OUT:
-    RK_AUDIO_LOG_D("writer out\n");
 }
 
 int encoder_input(void *userdata, char *data, size_t data_len)
@@ -257,6 +257,7 @@ void encoder_run(void *data)
     int i = 0;
     media_sdk_msg_t encode_msg;
     media_sdk_msg_t msg;
+    struct audio_config audio_cfg;
     if (!encoder_cfg)
     {
         encoder_cfg = (record_encoder_cfg_t *)audio_calloc(1, sizeof(*encoder_cfg));
@@ -280,6 +281,10 @@ void encoder_run(void *data)
             {
                 encoder = g_default_encoder[i];
                 is_found_encoder = true;
+                if (!strncmp(audio_type, "wav", 3))
+                    g_wav_encode = 1;
+                else
+                    g_wav_encode = 0;
                 break;
             }
         }
@@ -296,20 +301,11 @@ void encoder_run(void *data)
         else
         {
             RK_AUDIO_LOG_D("encode_run init begin\n");
-            if (!strcmp(audio_type, "wav"))
-            {
-                struct wav_config wav_cfg;
-                wav_cfg.sample_rate = recorder->samplerate;
-                wav_cfg.bits = recorder->bits;
-                wav_cfg.channels = recorder->channels;
-                rk_dcache_ops(RK_HW_CACHE_CLEAN, recorder, sizeof(struct recorder));
-                encoder.userdata = &wav_cfg;
-                g_wav_encode = 1;
-            }
-            else
-            {
-                g_wav_encode = 0;
-            }
+            audio_cfg.sample_rate = recorder->samplerate;
+            audio_cfg.bits = recorder->bits;
+            audio_cfg.channels = recorder->channels;
+            rk_dcache_ops(RK_HW_CACHE_CLEAN, recorder, sizeof(struct recorder));
+            encoder.userdata = &audio_cfg;
             if (encoder.init(&encoder, encoder_cfg))
             {
                 RK_AUDIO_LOG_E("encode_run, encoder init fail\n");
@@ -339,7 +335,7 @@ void encoder_run(void *data)
             {
             case RECORD_ENCODER_INPUT_ERROR:
                 RK_AUDIO_LOG_W("record_encoder_INPUT_ERROR\n");
-                audio_stream_stop(recorder->encode_stream);
+                audio_stream_finish(recorder->encode_stream);
                 break;
             case RECORD_ENCODER_OUTPUT_ERROR:
                 RK_AUDIO_LOG_W("record_encoder_OUTPUT_ERROR\n");
@@ -451,15 +447,16 @@ void capture_run(void *data)
                     write_size = audio_stream_write(recorder->record_stream, read_buf, read_size);
                     memset(read_buf, 0, frame_size);
 
-                    if (write_size < frame_size)
+                    if (write_size == -1)
                     {
-                        RK_AUDIO_LOG_W("read read_size < frame_size, go to stop\n");
+                        RK_AUDIO_LOG_W("Record stream stopped\n");
                         break;
                     }
 
-                    if (write_size == -1)
+                    if (write_size < frame_size)
                     {
-                        audio_stream_stop(recorder->record_stream);
+                        RK_AUDIO_LOG_W("read read_size < frame_size, go to stop\n");
+                        audio_stream_finish(recorder->record_stream);
                         break;
                     }
                 }

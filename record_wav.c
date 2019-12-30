@@ -23,7 +23,7 @@ struct wav_header m_wav_header;
 int record_wav_init(struct record_encoder *self, record_encoder_cfg_t *cfg)
 {
     record_wav_handle_t wav = (record_wav_handle_t) audio_calloc(1, sizeof(*wav));
-    struct wav_config wav_cfg = *(struct wav_config *) self->userdata;
+    struct audio_config wav_cfg = *(struct audio_config *) self->userdata;
     if (!wav)
         return -1;
     wav->has_post = false;

@@ -165,6 +165,13 @@ typedef struct
     void *args;
 } audio_thread_cfg_t;
 
+struct audio_config
+{
+    int sample_rate;
+    int bits;
+    int channels;
+};
+
 typedef enum
 {
     AUDIO_QUEUE_STATE_WAIT_READABLE = 0x1,
