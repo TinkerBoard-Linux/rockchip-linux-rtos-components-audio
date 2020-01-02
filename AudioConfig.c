@@ -733,7 +733,7 @@ int audio_stream_start(struct audio_player_stream *self)
     self->fill = 0;
     self->read_pos = 0;
     self->write_pos = 0;
-    self->state = AUDIO_STREAM_STATE_RUNNING;
+    self->state = AUDIO_STREAM_STATE_RUN;
     audio_mutex_unlock(self->lock);
 
     return RK_AUDIO_SUCCESS;
@@ -839,7 +839,7 @@ int audio_stream_write(struct audio_player_stream *self, const char *data, size_
         while (1)
         {
             audio_mutex_lock(self->lock);
-            if (!(self->state & AUDIO_STREAM_STATE_RUNNING))
+            if (!(self->state & AUDIO_STREAM_STATE_RUN))
             {
                 audio_mutex_unlock(self->lock);
                 return 0;
