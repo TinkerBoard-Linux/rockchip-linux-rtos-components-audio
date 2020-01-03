@@ -69,6 +69,7 @@ REDO:
             if (response)
                 audio_free(response);
             cfg->target = resp.httpRedirectURL.pParam;
+            close(http_socket);
             goto REDO;
         }
         else
