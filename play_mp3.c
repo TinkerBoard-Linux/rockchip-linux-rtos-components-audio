@@ -205,11 +205,12 @@ play_decoder_error_t play_mp3_process_impl(struct play_decoder *self)
                 bits        = g_pMPI->mpi_frameinfo.bitsPerSample;
                 channels    = g_pMPI->mpi_frameinfo.nChans;
                 sample_rate = g_pMPI->mpi_frameinfo.samprate;
-                RK_AUDIO_LOG_V("is first frame mp3 samprate = %d Channel = %d bits = %d outlen = %d\n",
+                RK_AUDIO_LOG_V("is first frame mp3 samprate = %d Channel = %d bits = %d outlen = %d, bps = %d\n",
                                g_pMPI->mpi_frameinfo.samprate,
                                g_pMPI->mpi_frameinfo.nChans,
                                g_pMPI->mpi_frameinfo.bitsPerSample,
-                               g_pMPI->mpi_frameinfo.outputSamps);
+                               g_pMPI->mpi_frameinfo.outputSamps,
+                               g_pMPI->mpi_frameinfo.bitrate);
 
                 if (ret != 0)
                 {
