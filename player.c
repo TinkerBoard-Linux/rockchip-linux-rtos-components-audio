@@ -767,6 +767,7 @@ int player_play(player_handle_t self, play_cfg_t *cfg)
     player_handle_t player = self;
     media_sdk_msg_t msg ;
     char *targetBuf = NULL;
+    int time_out = 1000;
 
     audio_mutex_lock(player->play_lock);
     g_player_freq = cfg->freq_t;
@@ -826,6 +827,9 @@ int player_play(player_handle_t self, play_cfg_t *cfg)
     while ((self->state != PLAYER_STATE_RUNNING) && (self->state != PLAYER_STATE_ERROR))
     {
         audio_sleep(10);
+        time_out--;
+        if (!time_out)
+            break;
     }
 #if PLAYER_FADE_IN
     if (vol)
