@@ -119,7 +119,7 @@ void *audio_realloc(void *ptr, size_t size)
 
 void *audio_malloc_uncache(size_t size)
 {
-    return rkos_memory_malloc_align(size, 32);
+    return rkos_memory_malloc_align(size, 128);
 }
 
 void *audio_device_open(const int dev_id, int flag)
