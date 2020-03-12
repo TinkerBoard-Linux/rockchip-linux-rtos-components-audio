@@ -478,6 +478,7 @@ void *decoder_run(void *data)
                 audio_mutex_unlock(player->state_lock);
                 continue;
             }
+            player->state = PLAYER_STATE_RUNNING;
             audio_stream_start(player->decode_stream);
             decode_res = decoder.process(&decoder);
             RK_AUDIO_LOG_V("decode res %#x", decode_res);
@@ -632,7 +633,6 @@ void *playback_run(void *data)
                 audio_mutex_unlock(player->state_lock);
                 continue;
             }
-            player->state = PLAYER_STATE_RUNNING;
             read_buf = audio_malloc(frame_size * 2);
             if (!read_buf)
             {
@@ -767,7 +767,7 @@ int player_play(player_handle_t self, play_cfg_t *cfg)
     player_handle_t player = self;
     media_sdk_msg_t msg ;
     char *targetBuf = NULL;
-    int time_out = 1000;
+    int time_out = 2000;
 
     audio_mutex_lock(player->play_lock);
     g_player_freq = cfg->freq_t;
