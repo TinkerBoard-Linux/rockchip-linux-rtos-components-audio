@@ -125,7 +125,13 @@ void *audio_malloc_uncache(size_t size)
 void *audio_device_open(const int dev_id, int flag)
 {
     DEVICE_CLASS *audio_dev;
-    audio_dev = (DEVICE_CLASS *)rkdev_open(DEV_CLASS_AUDIO, dev_id, 0x00);
+    int class_id = rkos_audio_get_class();
+    if (class_id == -1)
+    {
+        RK_AUDIO_LOG_E("can not find audio class.\n");
+        return NULL;
+    }
+    audio_dev = (DEVICE_CLASS *)rkdev_open(class_id, dev_id, 0x00);
     if (audio_dev == NULL)
     {
         RK_AUDIO_LOG_E("can not open audio card %d.\n", dev_id);
