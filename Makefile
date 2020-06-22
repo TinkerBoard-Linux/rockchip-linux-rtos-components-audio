@@ -30,7 +30,7 @@ DIRS := $(filter-out $(DIRS_IGNORE),$(DIRS_ALL))
 
 SRCS := $(basename $(foreach dir,$(DIRS),$(wildcard $(dir)/*.[cS])))
 
-OBJS := $(addsuffix .o,$(SRCS))
+OBJS := $(sort $(addsuffix .o,$(SRCS)))
 
 
 # library make rules
