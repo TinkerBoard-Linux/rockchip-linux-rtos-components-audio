@@ -37,6 +37,8 @@ int http_preprocessor_init_impl(struct play_preprocessor *self,
     bool bSucc = RK_AUDIO_FAIL;
     int mem_size = HTTP_DOWNLOAD_FILE_NAME_LENGTH;
     char *response = NULL;
+    char * target;
+    target = cfg->target;
 
 REDO:
     response = (char *) audio_malloc(mem_size * sizeof(char));
@@ -44,7 +46,7 @@ REDO:
     http_socket = -1;
     if (music_need_seek)
     {
-        if (http_open(cfg->target, &response, &http_socket, HTTP_GET, NULL, music_seek) != HTTP_STATUS_OK)
+        if (http_open(target, &response, &http_socket, HTTP_GET, NULL, music_seek) != HTTP_STATUS_OK)
         {
             goto END;
         }
@@ -52,12 +54,11 @@ REDO:
     }
     else
     {
-        if (http_open(cfg->target, &response, &http_socket, HTTP_GET, NULL, 0) != HTTP_STATUS_OK)
+        if (http_open(target, &response, &http_socket, HTTP_GET, NULL, 0) != HTTP_STATUS_OK)
         {
             goto END;
         }
     }
-
     g_is_chunked = RK_AUDIO_FAIL;
     struct HTTP_RES_HEADER resp = parse_header(response);
     RK_AUDIO_LOG_D("\n>>>>http header parse success:<<<<");
@@ -68,7 +69,7 @@ REDO:
         {
             if (response)
                 audio_free(response);
-            cfg->target = resp.httpRedirectURL.pParam;
+            target = resp.httpRedirectURL.pParam;
             close(http_socket);
             goto REDO;
         }
@@ -108,7 +109,7 @@ REDO:
     cfg->frame_size = HTTP_PREPROCESSOR_FRAME_SIZE;
     RK_AUDIO_LOG_V("[%s] open native http ok, http: %s, audio type:%s",
                    cfg->tag,
-                   cfg->target,
+                   target,
                    cfg->type);
     bSucc = RK_AUDIO_TRUE;
 

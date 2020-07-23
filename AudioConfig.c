@@ -108,8 +108,7 @@ void audio_free_uncache(void *ptr)
 
 void *audio_calloc(size_t nmemb, size_t size)
 {
-    size_t SizeLen = nmemb * size;
-    return rkos_memory_malloc(SizeLen);
+    return calloc(nmemb, size);
 }
 
 void *audio_realloc(void *ptr, size_t size)

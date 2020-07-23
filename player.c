@@ -146,7 +146,7 @@ void *preprocess_run(void *data)
     size_t frame_size = 0;
     if (!processor_cfg)
     {
-        processor_cfg = (play_preprocessor_cfg_t *)audio_malloc(sizeof(*processor_cfg));
+        processor_cfg = (play_preprocessor_cfg_t *)audio_calloc(sizeof(*processor_cfg), 1);
         RK_AUDIO_LOG_D("malloc processor_cfg...");
     }
 
@@ -809,7 +809,7 @@ int player_play(player_handle_t self, play_cfg_t *cfg)
     audio_free(music_name);
     if (music_name = audio_malloc(strlen(cfg->target) + 1))
     {
-        memcpy(music_name, cfg->target, strlen(cfg->target));
+        memcpy(music_name, cfg->target, strlen(cfg->target) + 1);
     }
     if (cfg->need_free)
     {
@@ -819,7 +819,7 @@ int player_play(player_handle_t self, play_cfg_t *cfg)
             RK_AUDIO_LOG_E("no mem!");
             return RK_AUDIO_FAILURE;
         }
-        memcpy(targetBuf, cfg->target, strlen(cfg->target));
+        memcpy(targetBuf, cfg->target, strlen(cfg->target) + 1);
         msg.player.target = targetBuf;
     }
     else
