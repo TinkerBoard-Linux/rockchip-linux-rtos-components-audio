@@ -453,9 +453,9 @@ void capture_run(void *data)
                         break;
                     }
 
-                    if (write_size < frame_size)
+                    if (write_size < read_size)
                     {
-                        RK_AUDIO_LOG_W("read read_size < frame_size, go to stop\n");
+                        RK_AUDIO_LOG_W("read read_size < read_size, go to stop\n");
                         audio_stream_finish(recorder->record_stream);
                         break;
                     }

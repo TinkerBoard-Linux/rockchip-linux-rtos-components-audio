@@ -104,6 +104,7 @@ typedef void *HDC
 
 #define RK_AUDIO_CODEC_RUN_ON_M4
 #define RK_AUDIO_CASE_CHECK(x,y)    ((x) | ((y) << 16))
+#define RK_AUDIO_ALIGN(x, align)    ((x + (align - 1)) & ~(align - 1))
 
 #define RK_AUDIO_TRUE   (1)
 #define RK_AUDIO_FAIL   (0)

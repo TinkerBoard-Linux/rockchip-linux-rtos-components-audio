@@ -30,12 +30,17 @@ int capture_device_open_impl(struct capture_device *self, capture_device_cfg_t *
     audio_mutex_lock(capture_lock);
 
     if (capture_handle)
+    {
+        g_config->want_ch = cfg->channels ? cfg->channels : 2;
         goto OPEN_SUCCESS;
+    }
+
     g_config = audio_malloc(sizeof(struct pcm_config));
+    g_config->want_ch = cfg->channels ? cfg->channels : 2;
 #if CAPTURE_ALWAYS_4CH
     g_config->channels = 4;
 #else
-    g_config->channels = cfg->channels ? cfg->channels : 2;
+    g_config->channels = RK_AUDIO_ALIGN(g_config->want_ch, 2);
 #endif
     g_config->rate = cfg->samplerate ? cfg->samplerate : 16000;
     g_config->bits = cfg->bits ? cfg->bits : 16;
@@ -104,6 +109,18 @@ int capture_device_read_impl(struct capture_device *self, const char *data, size
     if (read_err == -EINVAL)
     {
         pcm_prepare(capture_handle);
+    }
+
+    if (g_config->want_ch != g_config->channels)
+    {
+        char *src = (char *)data;
+        char *out = (char *)data;
+        for (int i = 0; i < data_len; i += g_config->channels * sizeof(short))
+        {
+            memcpy(out, src + i, g_config->want_ch * sizeof(short));
+            out += g_config->want_ch * sizeof(short);
+        }
+        data_len = data_len / g_config->channels * g_config->want_ch;
     }
 
     return data_len;
