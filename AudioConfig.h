@@ -97,6 +97,8 @@ typedef void *HDC
 #include "record_amr.h"
 #include "record_wav.h"
 #include "play_mp3.h"
+#include "play_amr.h"
+#include "play_wav.h"
 #include "play_pcm.h"
 #include "wav_header.h"
 
