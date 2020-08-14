@@ -9,8 +9,16 @@
 
 struct
 {
-    int vol;
-    int dB;
+    union
+    {
+        struct {
+            int vol;    /* playback:L/R gain, capture: unused*/
+        }play;
+        struct {
+            int dB;     /* playback:unused, capture: L/R gain*/
+            int dB_lp;  /* playback:unused, capture: loopback gain*/
+        }rec;
+    };
     bool changed;
 } play_vol, rec_vol;
 
@@ -117,21 +125,26 @@ int pcm_set_config(struct pcm *pcm_dev, struct pcm_config config)
     pcm_dev->prepared = RK_AUDIO_TRUE;
     if (rec_vol.changed && pcm_dev->type == PCM_IN)
     {
-        audio_device_set_gain(pcm_dev->device, rec_vol.dB);
-        rec_vol.dB = audio_device_get_gain(pcm_dev->device);
+        audio_device_set_gain(pcm_dev->device, RECORD_CARD_CHANNEL_0, rec_vol.rec.dB);
+        audio_device_set_gain(pcm_dev->device, RECORD_CARD_CHANNEL_1, rec_vol.rec.dB);
+        rec_vol.rec.dB = audio_device_get_gain(pcm_dev->device, RECORD_CARD_CHANNEL_0);
+
+        audio_device_set_gain(pcm_dev->device, RECORD_CARD_CHANNEL_2, rec_vol.rec.dB_lp);
+        rec_vol.rec.dB_lp = audio_device_get_gain(pcm_dev->device, RECORD_CARD_CHANNEL_2);
+
         rec_vol.changed = RK_AUDIO_FAIL;
     }
     if (play_vol.changed && pcm_dev->type == PCM_OUT)
     {
-        audio_device_set_vol(pcm_dev->device, play_vol.vol);
-        play_vol.vol = audio_device_get_vol(pcm_dev->device);
+        audio_device_set_vol(pcm_dev->device, play_vol.play.vol);
+        play_vol.play.vol = audio_device_get_vol(pcm_dev->device);
         play_vol.changed = RK_AUDIO_FAIL;
     }
 
     return 0;
 }
 
-int pcm_set_volume(struct pcm *pcm_dev, int vol, int flag)
+int pcm_set_volume(struct pcm *pcm_dev, int vol, int vol2, int flag)
 {
     int dB;
 
@@ -140,12 +153,13 @@ int pcm_set_volume(struct pcm *pcm_dev, int vol, int flag)
         switch (flag)
         {
         case AUDIO_FLAG_RDONLY:
-            rec_vol.dB = vol;
+            rec_vol.rec.dB = vol;
+            rec_vol.rec.dB_lp = vol2;
             rec_vol.changed = RK_AUDIO_TRUE;
             return RK_AUDIO_SUCCESS;
 
         case AUDIO_FLAG_WRONLY:
-            play_vol.vol = vol;
+            play_vol.play.vol = vol;
             play_vol.changed = RK_AUDIO_TRUE;
             return RK_AUDIO_SUCCESS;
 
@@ -157,13 +171,16 @@ int pcm_set_volume(struct pcm *pcm_dev, int vol, int flag)
     switch (flag)
     {
     case AUDIO_FLAG_RDONLY:
-        audio_device_set_gain(pcm_dev->device, vol);
-        rec_vol.dB = audio_device_get_gain(pcm_dev->device);
+        audio_device_set_gain(pcm_dev->device, RECORD_CARD_CHANNEL_0, vol);
+        audio_device_set_gain(pcm_dev->device, RECORD_CARD_CHANNEL_1, vol);
+        rec_vol.rec.dB = audio_device_get_gain(pcm_dev->device, RECORD_CARD_CHANNEL_0);
+        audio_device_set_gain(pcm_dev->device, RECORD_CARD_CHANNEL_2, vol2);
+        rec_vol.rec.dB_lp = audio_device_get_gain(pcm_dev->device, RECORD_CARD_CHANNEL_2);
         return RK_AUDIO_SUCCESS;
 
     case AUDIO_FLAG_WRONLY:
         audio_device_set_vol(pcm_dev->device, vol);
-        play_vol.vol = audio_device_get_vol(pcm_dev->device);
+        play_vol.play.vol = audio_device_get_vol(pcm_dev->device);
         return RK_AUDIO_SUCCESS;
 
     default:
@@ -172,34 +189,42 @@ int pcm_set_volume(struct pcm *pcm_dev, int vol, int flag)
     }
 }
 
-int pcm_get_volume(struct pcm *pcm_dev, int flag)
+int pcm_get_volume(struct pcm *pcm_dev, int *vol, int *vol2, int flag)
 {
-    int vol, i;
-
-    if (!pcm_dev || !pcm_dev->prepared)
+    if (pcm_dev && pcm_dev->prepared)
     {
         switch (flag)
         {
         case AUDIO_FLAG_RDONLY:
-            return rec_vol.dB;
+            rec_vol.rec.dB = audio_device_get_gain(pcm_dev->device, RECORD_CARD_CHANNEL_0);
+            rec_vol.rec.dB_lp = audio_device_get_gain(pcm_dev->device, RECORD_CARD_CHANNEL_2);
+            break;
 
         case AUDIO_FLAG_WRONLY:
-            return play_vol.vol;
+            play_vol.play.vol = audio_device_get_vol(pcm_dev->device);
+            break;
 
         default:
             RK_AUDIO_LOG_E("unsupport flag:%d\n", flag);
             return RK_AUDIO_FAILURE;
         }
     }
+
     switch (flag)
     {
     case AUDIO_FLAG_RDONLY:
-        rec_vol.dB = audio_device_get_gain(pcm_dev->device);
-        return rec_vol.dB;
+        if (vol)
+            *vol = rec_vol.rec.dB;
+        if (vol2)
+            *vol2 = rec_vol.rec.dB_lp;
+        return RK_AUDIO_SUCCESS;
 
     case AUDIO_FLAG_WRONLY:
-        play_vol.vol = audio_device_get_vol(pcm_dev->device);
-        return play_vol.vol;
+        if (vol)
+            *vol = play_vol.play.vol;
+        if (vol2)
+            *vol2 = play_vol.play.vol;
+        return RK_AUDIO_SUCCESS;
 
     default:
         RK_AUDIO_LOG_E("unsupport flag:%d\n", flag);

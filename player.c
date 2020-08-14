@@ -777,6 +777,12 @@ player_handle_t player_create(player_cfg_t *cfg)
         c.run = (void *)playback_run;
         c.args = player;
         player->play_task = audio_thread_create("play_task", 2048, 28, &c);
+
+#ifdef OS_IS_FREERTOS
+        struct audio_menuconfig cfg;
+        rkos_audio_get_config(&cfg, AUDIO_FLAG_WRONLY);
+        playback_set_volume(cfg.play.vol);
+#endif
     }
     RK_AUDIO_LOG_V("Success");
     return player;

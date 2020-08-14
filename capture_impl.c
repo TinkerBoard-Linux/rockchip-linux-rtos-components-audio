@@ -82,14 +82,16 @@ int capture_device_start_impl(struct capture_device *self)
     return RK_AUDIO_SUCCESS;
 }
 
-int capture_set_volume(int vol)
+int capture_set_volume(int vol, int vol2)
 {
-    return pcm_set_volume(capture_handle, vol, AUDIO_FLAG_RDONLY);
-}
+    int _vol, _vol2;
+    pcm_set_volume(capture_handle, vol, vol2, AUDIO_FLAG_RDONLY);
+    pcm_get_volume(capture_handle, &_vol, &_vol2, AUDIO_FLAG_RDONLY);
 
-int capture_get_volume(void)
-{
-    return pcm_get_volume(capture_handle, AUDIO_FLAG_RDONLY);
+    if (_vol != vol || _vol2 != vol2)
+        RK_AUDIO_LOG_W("[%d, %d] -> [%d, %d]", vol, vol2, _vol, _vol2);
+
+    return ((_vol << 16) | _vol2 & 0xFFFF);
 }
 
 int capture_device_read_impl(struct capture_device *self, const char *data, size_t data_len)

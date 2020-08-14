@@ -248,10 +248,10 @@ int audio_device_control(void *dev, uint32_t cmd, void *arg);
 int audio_device_close(void *dev);
 unsigned long audio_device_write(void *dev, char *data, unsigned long frames);
 unsigned long audio_device_read(void *dev, char *data, unsigned long frames);
-void audio_device_set_vol(void *dev, uint32 vol);
+void audio_device_set_vol(void *dev, int vol);
 int audio_device_get_vol(void *dev);
-void audio_device_set_gain(void *dev, uint32 dB);
-int audio_device_get_gain(void *dev);
+void audio_device_set_gain(void *dev, int ch, int dB);
+int audio_device_get_gain(void *dev, int ch);
 void audio_sleep(uint32_t ms);
 int audio_fopen(char *path, char *mode);
 int audio_fread(void *buffer, size_t size, size_t count, int stream);
@@ -261,5 +261,7 @@ size_t audio_ftell(int stream);
 int audio_fseek(int stream, int32_t offset, uint32_t pos);
 
 int check_native_audio_type(char *target, char **type);
+
+int capture_set_volume(int vol, int vol2);
 
 #endif  /* _AUDIO_CONFIG_H */

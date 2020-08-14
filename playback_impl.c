@@ -70,12 +70,15 @@ int playback_device_start_impl(struct playback_device *self)
 
 int playback_set_volume(int vol)
 {
-    return pcm_set_volume(playback_handle, vol, AUDIO_FLAG_WRONLY);
-}
+    int _vol;
 
-int playback_get_volume(void)
-{
-    return pcm_get_volume(playback_handle, AUDIO_FLAG_WRONLY);
+    pcm_set_volume(playback_handle, vol, vol, AUDIO_FLAG_WRONLY);
+    pcm_get_volume(playback_handle, &_vol, NULL, AUDIO_FLAG_WRONLY);
+
+    if (_vol != vol)
+        RK_AUDIO_LOG_W("[%d] -> [%d]", vol, _vol);
+
+    return _vol;
 }
 
 int playback_device_write_impl(struct playback_device *self, const char *data, size_t data_len)

@@ -513,6 +513,12 @@ recorder_handle_t recorder_create(recorder_cfg_t *cfg)
         c.run = capture_run;
         c.args = recorder;
         recorder->record_task = audio_thread_create("record_task", 1024, 28, &c);
+
+#ifdef OS_IS_FREERTOS
+        struct audio_menuconfig cfg;
+        rkos_audio_get_config(&cfg, AUDIO_FLAG_RDONLY);
+        capture_set_volume(cfg.rec.dB, cfg.rec.dB_lp);
+#endif
     }
     RK_AUDIO_LOG_D("recorder_create out");
     return recorder;
