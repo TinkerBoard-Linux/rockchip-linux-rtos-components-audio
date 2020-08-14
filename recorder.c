@@ -549,7 +549,7 @@ int recorder_record(recorder_handle_t self, record_cfg_t *cfg)
             RK_AUDIO_LOG_E("no mem!");
             return RK_AUDIO_FAILURE;
         }
-        memcpy(msg.recorder.target, cfg->target, strlen(cfg->target));
+        memcpy(msg.recorder.target, cfg->target, strlen(cfg->target) + 1);
     }
     else
     {
