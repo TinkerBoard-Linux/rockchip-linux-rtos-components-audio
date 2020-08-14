@@ -30,6 +30,10 @@ typedef uint32_t uint32;
 typedef int64_t int64;
 typedef uint64_t uint64;
 
+#ifndef NULL
+#define NULL ((void *)0)
+#endif
+
 #define OSCL_IMPORT_REF
 #define OSCL_EXPORT_REF
 #define OSCL_UNUSED_ARG(x) (void)(x)

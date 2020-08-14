@@ -39,6 +39,9 @@ AMR_DIRS := $(ENCODE_PATH)/amr/opencore-amr/amrnb \
 	$(DECODE_PATH)/amr \
 	$(ENCODE_PATH)/amr
 
+AMR_WB_DIRS := $(ENCODE_PATH)/amr/opencore-amr/amrwb \
+	$(ENCODE_PATH)/amr/opencore-amr/opencore/codecs_v2/audio/gsm_amr/amr_wb/dec/src
+
 ifeq ($(AMR_DIRS), $(wildcard $(AMR_DIRS)))
 AMR_INCLUDE_PATHS := \
 	-I"$(DECODE_PATH)/../../" \
@@ -48,10 +51,13 @@ AMR_INCLUDE_PATHS := \
 	-I"$(ENCODE_PATH)/amr/opencore-amr/opencore/codecs_v2/audio/gsm_amr/amr_nb/enc/src" \
 	-I"$(ENCODE_PATH)/amr/opencore-amr/oscl" \
 	-I"$(ENCODE_PATH)/amr/opencore-amr/amrnb" \
+	-I"$(ENCODE_PATH)/amr/opencore-amr/amrwb" \
 	-I"$(ENCODE_PATH)/amr/opencore-amr/opencore/codecs_v2/audio/gsm_amr/amr_nb/dec/src" \
+	-I"$(ENCODE_PATH)/amr/opencore-amr/opencore/codecs_v2/audio/gsm_amr/amr_wb/dec/src" \
 	-I"$(ENCODE_PATH)/amr/opencore-amr/opencore/codecs_v2/audio/gsm_amr/amr_nb/common/include" \
 	-I"$(ENCODE_PATH)/amr/opencore-amr/opencore/codecs_v2/audio/gsm_amr/amr_nb/common/src" \
 	-I"$(ENCODE_PATH)/amr/opencore-amr/opencore/codecs_v2/audio/gsm_amr/amr_nb/dec/include" \
+	-I"$(ENCODE_PATH)/amr/opencore-amr/opencore/codecs_v2/audio/gsm_amr/amr_wb/dec/include" \
 	-I"$(ENCODE_PATH)/amr/opencore-amr/opencore/codecs_v2/audio/gsm_amr/common/dec/include"
 
 AMR_FILES_IGNORE := common/src/bits2prm.cpp \
@@ -79,11 +85,15 @@ AMR_FILES_IGNORE := common/src/bits2prm.cpp \
 
 AMR_FILES_IGNORE := $(addprefix %,$(AMR_FILES_IGNORE))
 LIBS_AMR_SRCS := $(foreach dir,$(AMR_DIRS),$(wildcard $(dir)/*.[cS] $(dir)/*.cpp))
+LIBS_AMR_WB_SRCS := $(foreach dir,$(AMR_WB_DIRS),$(wildcard $(dir)/*.[cS] $(dir)/*.cpp))
 LIBS_AMR_SRCS := $(filter-out $(AMR_FILES_IGNORE),$(LIBS_AMR_SRCS))
-LIBS_AMR_CFLAGS := $(CFLAGS) $(AMR_INCLUDE_PATHS) $(INCLUDE_PATHS)
-LIBS_AMR_CPPFLAGS := $(CPPFLAGS) -xc
+LIBS_AMR_CFLAGS := $(CFLAGS) $(AMR_INCLUDE_PATHS) $(INCLUDE_PATHS) -xc
+LIBS_AMR_CPPFLAGS := $(CPPFLAGS)
+LIBS_AMR_CXXFLAGS := $(CXXFLAGS) $(AMR_INCLUDE_PATHS) $(INCLUDE_PATHS)
 LIBS_AMR_SRCS_OBJS := $(addsuffix .o, $(basename $(LIBS_AMR_SRCS)))
+LIBS_AMR_WB_SRCS_OBJS := $(addsuffix .o, $(basename $(LIBS_AMR_WB_SRCS)))
 LIBS_CLEAN_OBJS += $(LIBS_AMR_SRCS_OBJS)
+LIBS_CLEAN_OBJS += $(LIBS_AMR_WB_SRCS_OBJS)
 INCLUDE_PATHS += $(AMR_INCLUDE_PATHS)
 
 LIBS_AMR_NAME := $(LIBS_INSTALL_DIRS)/libamr.a
@@ -91,6 +101,7 @@ LIBS_AMR_CPPFLAGS += -DAMRNB_TINY
 LIBS_ALL_NAME += $(LIBS_AMR_NAME)
 
 LIBS_CODEC_OBJS += $(LIBS_AMR_SRCS_OBJS)
+LIBS_CODEC_OBJS += $(LIBS_AMR_WB_SRCS_OBJS)
 
 endif
 endif # end amr decode and encode
@@ -129,4 +140,9 @@ endif
 $(LIBS_AMR_SRCS_OBJS): $(LIBS_AMR_SRCS)
 ifeq ($(findstring y,$(CONFIG_AUDIO_DECODER_AMR) $(CONFIG_AUDIO_ENCODER_AMR)), y)
 	$(Q)$(CC) $(LIBS_AMR_CFLAGS) $(LIBS_AMR_CPPFLAGS) -c $(patsubst %.o,%.cpp,$@) -o $@
+endif
+
+$(LIBS_AMR_WB_SRCS_OBJS): $(LIBS_AMR_WB_SRCS)
+ifeq ($(CONFIG_AUDIO_DECODER_AMR), y)
+	$(Q)$(CC) $(LIBS_AMR_CXXFLAGS) $(LIBS_AMR_CPPFLAGS) -c $(patsubst %.o,%.cpp,$@) -o $@
 endif

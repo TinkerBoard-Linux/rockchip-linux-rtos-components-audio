@@ -40,22 +40,22 @@ terms listed above has been obtained from the copyright holder.
 
 
 // Use default DLL entry point
-#include "oscl_dll.h"
-#include "oscl_error_codes.h"
-#include "oscl_exception.h"
+// #include "oscl_dll.h"
+// #include "oscl_error_codes.h"
+// #include "oscl_exception.h"
 #include "oscl_mem.h"
 
 
 #define KCAI_CODEC_INIT_FAILURE -1
 
 
-OSCL_DLL_ENTRY_POINT_DEFAULT()
+// OSCL_DLL_ENTRY_POINT_DEFAULT()
 
 OSCL_EXPORT_REF CDecoder_AMR_WB *CDecoder_AMR_WB::NewL()
 {
     CDecoder_AMR_WB *dec = new CDecoder_AMR_WB;
     if (dec == NULL)
-        OSCL_LEAVE(OsclErrNoMemory);
+        return NULL;
     else
         dec->ConstructL();
     return dec;
@@ -93,19 +93,19 @@ OSCL_EXPORT_REF CDecoder_AMR_WB::~CDecoder_AMR_WB()
 
     if (pt_st != NULL)
     {
-        OSCL_ARRAY_DELETE((uint8*)pt_st);
+        oscl_free((void *)pt_st);
         pt_st = NULL;
     }
 
     if (iInputBuf)
     {
-        OSCL_ARRAY_DELETE(iInputBuf);
+        oscl_free((void *)iInputBuf);
         iInputBuf = NULL;
     }
 
     if (iOutputBuf)
     {
-        OSCL_ARRAY_DELETE(iOutputBuf);
+        oscl_free((void *)iOutputBuf);
         iOutputBuf = NULL;
     }
 }
@@ -136,7 +136,7 @@ OSCL_EXPORT_REF int32 CDecoder_AMR_WB::StartL(tPVAmrDecoderExternal * pExt,
      */
     if (aAllocateInputBuffer)
     {
-        iInputBuf = OSCL_ARRAY_NEW(uint8, KAMRWB_NB_BYTES_MAX);
+        iInputBuf = (uint8 *)oscl_malloc(sizeof(uint8) * KAMRWB_NB_BYTES_MAX);
         if (iInputBuf == NULL)
         {
             return KCAI_CODEC_INIT_FAILURE;
@@ -148,7 +148,7 @@ OSCL_EXPORT_REF int32 CDecoder_AMR_WB::StartL(tPVAmrDecoderExternal * pExt,
     }
     pExt->pInputBuffer = iInputBuf;
 
-    iInputSampleBuf = OSCL_ARRAY_NEW(int16, KAMRWB_NB_BITS_MAX);
+    iInputSampleBuf = (int16 *)oscl_malloc(sizeof(int16) * KAMRWB_NB_BITS_MAX);
     if (iInputSampleBuf == NULL)
     {
         return KCAI_CODEC_INIT_FAILURE;
@@ -160,7 +160,7 @@ OSCL_EXPORT_REF int32 CDecoder_AMR_WB::StartL(tPVAmrDecoderExternal * pExt,
      */
     if (aAllocateOutputBuffer)
     {
-        iOutputBuf = OSCL_ARRAY_NEW(int16, AMR_WB_PCM_FRAME);
+        iOutputBuf = (int16 *)oscl_malloc(sizeof(int16) * AMR_WB_PCM_FRAME);
 
         if (iOutputBuf == NULL)
         {
@@ -185,7 +185,7 @@ OSCL_EXPORT_REF int32 CDecoder_AMR_WB::StartL(tPVAmrDecoderExternal * pExt,
 
     int32 memreq = pvDecoder_AmrWbMemRequirements();
 
-    pt_st = OSCL_ARRAY_NEW(uint8, memreq);
+    pt_st = (uint8 *)oscl_malloc(sizeof(uint8) * memreq);
 
     if (pt_st == 0)
     {
@@ -357,25 +357,25 @@ OSCL_EXPORT_REF void CDecoder_AMR_WB::TerminateDecoderL()
 
     if (pt_st != NULL)
     {
-        OSCL_ARRAY_DELETE((uint8*)pt_st);
+        oscl_free((void *)pt_st);
         pt_st = NULL;
     }
 
     if (iInputBuf)
     {
-        OSCL_ARRAY_DELETE(iInputBuf);
+        oscl_free((void *)iInputBuf);
         iInputBuf = NULL;
     }
 
     if (iOutputBuf)
     {
-        OSCL_ARRAY_DELETE(iOutputBuf);
+        oscl_free((void *)iOutputBuf);
         iOutputBuf = NULL;
     }
 
     if (iInputSampleBuf != NULL)
     {
-        OSCL_ARRAY_DELETE(iInputSampleBuf);
+        oscl_free((void *)iInputSampleBuf);
         iInputSampleBuf = NULL;
     }
 
