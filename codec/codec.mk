@@ -8,9 +8,8 @@ ifneq ($(LIBS_INSTALL_DIRS), $(wildcard $(LIBS_INSTALL_DIRS)))
 LIBS_INSTALL_DIRS := ./
 endif
 
-LIBS_CODEC_OBJS ?= 
+LIBS_CODEC_OBJS ?=
 
-ifeq ($(CONFIG_AUDIO_DECODER_MP3), y)
 MP3_DIRS = $(DECODE_PATH)/mp3
 ifeq ($(MP3_DIRS), $(wildcard $(MP3_DIRS)))
 MP3_INCLUDE_PATHS := \
@@ -27,10 +26,6 @@ LIBS_ALL_NAME += $(LIBS_MP3_NAME)
 INCLUDE_PATHS += $(MP3_INCLUDE_PATHS)
 LIBS_CODEC_OBJS += $(LIBS_MP3_SRCS_OBJS)
 endif
-endif
-
-
-ifeq ($(findstring y,$(CONFIG_AUDIO_DECODER_AMR) $(CONFIG_AUDIO_ENCODER_AMR)), y)
 
 AMR_DIRS := $(ENCODE_PATH)/amr/opencore-amr/amrnb \
 	$(ENCODE_PATH)/amr/opencore-amr/opencore/codecs_v2/audio/gsm_amr/amr_nb/common/src \
@@ -102,11 +97,8 @@ LIBS_ALL_NAME += $(LIBS_AMR_NAME)
 
 LIBS_CODEC_OBJS += $(LIBS_AMR_SRCS_OBJS)
 LIBS_CODEC_OBJS += $(LIBS_AMR_WB_SRCS_OBJS)
-
 endif
-endif # end amr decode and encode
 
-ifeq ($(CONFIG_AUDIO_ENCODER_SPEEX), y)
 SPEEX_DIRS := $(ENCODE_PATH)/speex \
 	$(ENCODE_PATH)/speex/libspeex
 ifeq ($(SPEEX_DIRS), $(wildcard $(SPEEX_DIRS)))
@@ -125,24 +117,15 @@ LIBS_ALL_NAME += $(LIBS_SPEEX_NAME)
 INCLUDE_PATHS += $(SPEEX_INCLUDE_PATHS)
 LIBS_CODEC_OBJS += $(LIBS_SPEEX_SRCS_OBJS)
 endif
-endif
 
 $(LIBS_SPEEX_SRCS_OBJS): $(LIBS_SPEEX_SRCS)
-ifeq ($(CONFIG_AUDIO_ENCODER_SPEEX), y)
 	$(Q)$(CC) $(LIBS_SPEEX_CFLAGS) $(LIBS_SPEEX_CPPFLAGS) -c $(patsubst %.o,%.c,$@) -o $@
-endif
 
 $(LIBS_MP3_SRCS_OBJS): $(LIBS_MP3_SRCS)
-ifeq ($(CONFIG_AUDIO_DECODER_MP3), y)
 	$(Q)$(CC) $(LIBS_MP3_CFLAGS) $(LIBS_MP3_CPPFLAGS) -c $(patsubst %.o,%.c,$@) -o $@
-endif
 
 $(LIBS_AMR_SRCS_OBJS): $(LIBS_AMR_SRCS)
-ifeq ($(findstring y,$(CONFIG_AUDIO_DECODER_AMR) $(CONFIG_AUDIO_ENCODER_AMR)), y)
 	$(Q)$(CC) $(LIBS_AMR_CFLAGS) $(LIBS_AMR_CPPFLAGS) -c $(patsubst %.o,%.cpp,$@) -o $@
-endif
 
 $(LIBS_AMR_WB_SRCS_OBJS): $(LIBS_AMR_WB_SRCS)
-ifeq ($(CONFIG_AUDIO_DECODER_AMR), y)
 	$(Q)$(CC) $(LIBS_AMR_CXXFLAGS) $(LIBS_AMR_CPPFLAGS) -c $(patsubst %.o,%.cpp,$@) -o $@
-endif

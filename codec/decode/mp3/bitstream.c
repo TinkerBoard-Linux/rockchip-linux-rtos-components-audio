@@ -41,6 +41,9 @@
  * bitstream.c - bitstream unpacking, frame header parsing, side info parsing
  **************************************************************************************/
 
+#include <stdio.h>
+#include <string.h>
+#include <stdint.h>
 #include "coder.h"
 #include "assembly.h"
 
@@ -307,6 +310,17 @@ int UnpackFrameHeader(MP3DecInfo *mp3DecInfo, unsigned char *buf)
     }
 }
 
+uint32_t beTol(unsigned char *buf)
+{
+    unsigned char tmp[4];
+    tmp[0] = buf[3];
+    tmp[1] = buf[2];
+    tmp[2] = buf[1];
+    tmp[3] = buf[0];
+
+    return *(uint32_t *)tmp;
+}
+
 /**************************************************************************************
  * Function:    UnpackSideInfo
  *
@@ -356,6 +370,33 @@ int UnpackSideInfo(MP3DecInfo *mp3DecInfo, unsigned char *buf)
         SetBitstreamPointer(bsi, nBytes, buf);
         si->mainDataBegin = GetBits(bsi, 8);
         si->privateBits =   GetBits(bsi, (fh->sMode == Mono ? 1 : 2));
+    }
+    if (mp3DecInfo->vbr == -1)
+    {
+        if ((strncmp((char *)&buf[nBytes], "Info", 4) == 0) || (strncmp((char *)&buf[nBytes], "Xing", 4) == 0))
+        {
+            mp3DecInfo->vbr = 1;
+            uint32_t flags = beTol(&buf[nBytes + 4]);
+            int offset;
+            if (flags & 0x1)
+            {
+                mp3DecInfo->fCount = beTol(&buf[nBytes + 8]);
+            }
+            if (flags & 0x2)
+            {
+                offset = (flags & 0x1) ? 4 : 0;
+                mp3DecInfo->fSize = beTol(&buf[nBytes + 8 + offset]);
+            }
+            if (flags & 0x4)
+            {
+                offset = ((flags & 0x1) ? 4 : 0) + ((flags & 0x2) ? 4 : 0);
+                memcpy(mp3DecInfo->TOC, &buf[nBytes + 8 + offset], 100);
+            }
+        }
+        else
+        {
+            mp3DecInfo->vbr = 0;
+        }
     }
 
     for (gr = 0; gr < mp3DecInfo->nGrans; gr++)

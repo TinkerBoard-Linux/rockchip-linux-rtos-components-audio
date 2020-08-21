@@ -5,7 +5,6 @@
  */
 
 #include "amr_dec_hal.h"
-#if defined(AUDIO_DECODER_AMR)
 
 #include "interf_dec.h"
 #include "dec_if.h"
@@ -84,4 +83,3 @@ int32_t AudioDecAmrClose(void)
     }
     return 0;
 }
-#endif

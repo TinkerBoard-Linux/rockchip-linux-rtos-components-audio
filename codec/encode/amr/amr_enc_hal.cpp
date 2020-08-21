@@ -5,7 +5,6 @@
  */
 
 #include "amr_enc_hal.h"
-#if defined(AUDIO_ENCODER_AMR)
 
 #include "interf_enc.h"
 #include "oscl_mem.h"
@@ -53,4 +52,3 @@ int32_t AudioAmrEncodeClose(void)
     }
     return 0;
 }
-#endif

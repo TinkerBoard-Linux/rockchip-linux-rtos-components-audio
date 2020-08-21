@@ -14,15 +14,16 @@ include $(ROOT_PATH)/gcc.mk
 # ----------------------------------------------------------------------------
 LIBS := libaudio.a
 LIBS_RELEASE := libaudio_release.a
-DIRS_IGNORE := ./effect%
+DIRS_IGNORE := ./plugins/effect%
 DIRS_IGNORE += ./codec%
+AUDIO_SERVER_PATH := $(shell pwd)
+INCLUDE_PATHS += -I"$(AUDIO_SERVER_PATH)/common" \
+	-I"$(AUDIO_SERVER_PATH)/misc" \
+	-I"$(AUDIO_SERVER_PATH)/player" \
+	-I"$(AUDIO_SERVER_PATH)/plugins/ssrc" \
+	-I"$(AUDIO_SERVER_PATH)/recorder"
 
-ifeq ($(findstring y,$(CONFIG_AUDIO_DECODER_AMR) \
-	$(CONFIG_AUDIO_ENCODER_AMR) \
-	$(CONFIG_AUDIO_DECODER_MP3) \
-	$(CONFIG_AUDIO_ENCODER_SPEEX)), y)
 include ./codec/codec.mk
-endif
 
 DIRS_ALL := $(shell find . -type d)
 DIRS := $(filter-out $(DIRS_IGNORE),$(DIRS_ALL))

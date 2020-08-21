@@ -86,6 +86,11 @@ typedef struct _MP3DecInfo
     int nGranSamps;            /* samples per granule */
     int nSlots;
     int layer;
+    int vbr;                    /* is vbr flag */
+    uint32_t fSize;             /* file length, no tags */
+    uint32_t fCount;            /* frame count */
+    char TOC[100];              /* TOC */
+
     MPEGVersion version;
 
     int mainDataBegin;

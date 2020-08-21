@@ -2,4 +2,3 @@
 *.d
 *.a
 Kconfig
-audio_server.h

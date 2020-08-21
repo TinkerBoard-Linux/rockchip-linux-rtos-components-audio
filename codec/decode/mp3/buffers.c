@@ -129,6 +129,10 @@ MP3DecInfo *AllocateBuffers(void)
     mp3DecInfo->DequantInfoPS = (void *)di;
     mp3DecInfo->IMDCTInfoPS = (void *)mi;
     mp3DecInfo->SubbandInfoPS = (void *)sbi;
+    mp3DecInfo->vbr = -1;
+    mp3DecInfo->fCount = -1;
+    mp3DecInfo->fSize = -1;
+    mp3DecInfo->TOC[0] = -1;
 
     if (!fh || !si || !sfi || !hi || !di || !mi || !sbi)
     {

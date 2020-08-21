@@ -5,14 +5,13 @@
  */
 
 #include "mp3_hal.h"
-#if defined(AUDIO_DECODER_MP3)
 
 static MP3PLAYERINFO mpi;
 static short *g_DecPCMbuf = NULL;
 
 int32_t AudioDecMP3Open(uint32_t A2B_ShareDatAddr)
 {
-    printf("mp3 decode open\n");
+    RK_AUDIO_LOG_D("mp3 decode open");
     struct audio_server_data_share *pDecDat = (struct audio_server_data_share *)A2B_ShareDatAddr;
     pDecDat->dat[1] = MP3_AB_CORE_SHARE_ADDR_INVALID;
     mpi.mpi_mp3dec = MP3InitDecoder();
@@ -30,7 +29,7 @@ int32_t AudioDecMP3Open(uint32_t A2B_ShareDatAddr)
 
 int32_t AudioDecMP3Close(void)
 {
-    printf("mp3 decode close\n");
+    RK_AUDIO_LOG_D("mp3 decode close");
     if (mpi.mpi_mp3dec)
     {
         MP3FreeDecoder(mpi.mpi_mp3dec);
@@ -54,28 +53,27 @@ int32_t AudioDecMP3Process(uint32_t decode_dat)
 
         if ((skip = MP3FindSyncWord(decode_ptr, bytes_left)) < 0)
         {
-            printf("mp3 decode don't find sync word\n");
+            RK_AUDIO_LOG_E("mp3 decode don't find sync word");
             bytes_left = 0;
             ret = PLAY_DECODER_DECODE_ERROR;
             goto end_decode;
         }
         bytes_left -= skip;
         decode_ptr += skip;
-        /* printf("[debug] decode_ptr [%p] bytes_left [%x]\n\n", decode_ptr, bytes_left); */
+        RK_AUDIO_LOG_D("[debug] decode_ptr [%p] bytes_left [%x]", decode_ptr, bytes_left);
         ret = MP3Decode(mpi.mpi_mp3dec, &decode_ptr, &bytes_left, g_DecPCMbuf, 0);
         if (ret != 0)
         {
-            printf("mp3 decode failed ret:%d\n", ret);
+            RK_AUDIO_LOG_E("mp3 decode failed ret:%d", ret);
             if ((bytes_left == bytes_left_max) && (skip == 0))
             {
-                printf("skip one bytes in Bcore.\n");
+                RK_AUDIO_LOG_D("skip one bytes in Bcore.");
                 bytes_left --;
                 decode_ptr ++;
             }
             if (ret == ERR_MP3_INDATA_UNDERFLOW)
             {
-                bytes_left = 0;
-                ret = PLAY_DECODER_DECODE_ERROR;
+                bytes_left = -1;
                 goto end_decode;
             } /*else if (ret == ERR_MP3_MAINDATA_UNDERFLOW) {
                 ret = PLAY_DECODER_DECODE_ERROR;
@@ -87,7 +85,6 @@ int32_t AudioDecMP3Process(uint32_t decode_dat)
                 ret = PLAY_DECODER_DECODE_ERROR;
                 goto end_decode;
             }*/
-            ret = PLAY_DECODER_DECODE_ERROR;
             goto end_decode;
         }
         MP3GetLastFrameInfo(mpi.mpi_mp3dec, &mpi.mpi_frameinfo);
@@ -100,4 +97,3 @@ end_decode:
     pDecDat->dat[1] = bytes_left;
     return ret;
 }
-#endif

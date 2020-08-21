@@ -43,6 +43,7 @@
 
 #ifndef _MP3DEC_H
 #define _MP3DEC_H
+#include <stdint.h>
 
 #if defined(_WIN32) && !defined(_WIN32_WCE)
 #
@@ -120,6 +121,10 @@ typedef struct _MP3FrameInfo
     int outputSamps;
     int layer;
     int version;
+    int vbr;                    /* is vbr flag */
+    uint32_t fSize;             /* file length, no tags */
+    uint32_t fCount;            /* frame count */
+    char TOC[100];              /* TOC */
 } MP3FrameInfo;
 
 /* public API */
