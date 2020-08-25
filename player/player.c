@@ -357,10 +357,12 @@ PREPROCESS_EXIT_2:
     }
 }
 
+#define MAX_RESAMPLE_INPUT_FRAME (1152)
+
 static SRCState *g_pSRC = NULL;
 static int g_is_need_resample = 0;
 static char *g_resample_buffer;
-#define MAX_RESAMPLE_BUFFER_SIZE (7168)
+static short *rs_input_buffer;
 
 int decoder_input(void *userdata, char *data, size_t data_len)
 {
@@ -370,30 +372,46 @@ int decoder_input(void *userdata, char *data, size_t data_len)
 
 void player_audio_resample_init(int samplerate, int resample_rate)
 {
-    g_resample_buffer = audio_malloc(2 * MAX_RESAMPLE_BUFFER_SIZE * sizeof(char));
+    int scale = resample_rate / samplerate;
+    int ret;
+
+    if (scale < 2)
+        scale = 2;
+    rs_input_buffer = (short *)audio_malloc(MAX_RESAMPLE_INPUT_FRAME * 2 * sizeof(short) + 128);
+    g_resample_buffer = (char *)audio_malloc(MAX_RESAMPLE_INPUT_FRAME * 2 * sizeof(short) * scale);
     g_pSRC = (SRCState *)audio_malloc(sizeof(SRCState));
-    if (g_pSRC != NULL)
+
+    if ((rs_input_buffer == NULL) || (g_resample_buffer == NULL) || (g_pSRC == NULL))
     {
-        SRCInit(g_pSRC, samplerate, resample_rate);
+        RK_AUDIO_LOG_W("malloc failed, disable resample");
+    }
+    else
+    {
+        memset((char *)rs_input_buffer, 0, MAX_RESAMPLE_INPUT_FRAME * 2 * sizeof(short) + 128);
+        ret = SRCInit(g_pSRC, samplerate, resample_rate);
+        if (ret != 1)
+        {
+            RK_AUDIO_LOG_E("init failed %d->%d", samplerate, resample_rate);
+            audio_free(g_pSRC);
+            g_pSRC = NULL;
+        }
     }
 }
 
-static short rs_input_buffer[51 * 4 + 128];
 int player_audio_resample(player_handle_t player, char *data, size_t data_len)
 {
     int resample_out_len = 0;
-    if ((g_resample_buffer == NULL) || (g_pSRC == NULL))
+    int ret;
+
+    if ((rs_input_buffer == NULL) || (g_resample_buffer == NULL) || (g_pSRC == NULL))
     {
-        return 0;
+        ret = audio_stream_write(player->decode_stream, data, data_len);
+        return ret;
     }
-    for (int i = 0; i < data_len / 128 / 2; i++)
-    {
-        memset((char *)rs_input_buffer, 0, 2 * 128);
-        memcpy((char *)&rs_input_buffer[51 * 2], &data[i * 128 * 2], 128 * 2);
-        resample_out_len += SRCFilter(g_pSRC, (short *)&rs_input_buffer[51 * 2], (short *)&g_resample_buffer[resample_out_len * 2], 128);
-    }
+    memcpy((char *)&rs_input_buffer[64], data, data_len);
+    resample_out_len = SRCFilter(g_pSRC, (short *)&rs_input_buffer[64], (short *)g_resample_buffer, data_len / 2);
     resample_out_len *= 2;
-    int ret = audio_stream_write(player->decode_stream, g_resample_buffer, resample_out_len);
+    ret = audio_stream_write(player->decode_stream, g_resample_buffer, resample_out_len);
     return ret;
 }
 
@@ -469,12 +487,21 @@ int decoder_output(void *userdata, char *data, size_t data_len)
 
 void player_audio_resample_deinit(void)
 {
-    RK_AUDIO_LOG_D("player_audio_resample_deinit\n");
+    RK_AUDIO_LOG_D("player_audio_resample_deinit");
+    if (rs_input_buffer)
+    {
+        audio_free(rs_input_buffer);
+        rs_input_buffer = NULL;
+    }
     if (g_resample_buffer)
+    {
         audio_free(g_resample_buffer);
+        g_resample_buffer = NULL;
+    }
     if (g_pSRC)
     {
         audio_free(g_pSRC);
+        g_pSRC = NULL;
     }
 }
 
@@ -510,7 +537,6 @@ int decoder_post(void *userdata, int samplerate, int bits, int channels)
     {
         RK_AUDIO_LOG_V("%d != %d, need resample", samplerate, player->resample_rate);
         player_audio_resample_init(samplerate, player->resample_rate);
-        memset((char *)rs_input_buffer, 0, 2 * (51 * 4 + 128));
         player->samplerate = player->resample_rate;
         g_is_need_resample = 1;
     }
