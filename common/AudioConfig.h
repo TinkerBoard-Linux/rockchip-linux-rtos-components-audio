@@ -108,17 +108,13 @@ typedef void *HDC;
 #include "mp3_hal.h"
 #include "codec/decode/amr/amr_dec_hal.h"
 #include "codec/encode/amr/amr_enc_hal.h"
-#ifdef AUDIO_ENABLE_PLAYER
 #include "play_mp3.h"
 #include "play_pcm.h"
 #include "play_wav.h"
 #include "play_amr.h"
-#endif
-#ifdef AUDIO_ENABLE_RECORDER
 #include "record_amr.h"
 #include "record_pcm.h"
 #include "record_wav.h"
-#endif
 
 #define RK_AUDIO_API_DEFAULT        __attribute((visibility("default")))
 #define RK_AUDIO_API_HIDDEN         __attribute((visibility("hidden")))

@@ -6,6 +6,7 @@
 
 #include "AudioConfig.h"
 
+#ifdef AUDIO_ENABLE_RECORDER
 static record_encoder_t *g_default_encoder = NULL;
 
 struct recorder
@@ -837,3 +838,4 @@ void recorder_deinit(void)
         g_default_encoder = NULL;
     }
 }
+#endif

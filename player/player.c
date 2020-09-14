@@ -6,6 +6,7 @@
 
 #include "AudioConfig.h"
 
+#ifdef AUDIO_ENABLE_PLAYER
 #define PLAYBACK_FRAMESIZE      (4096)  /* bytes */
 #define DEVICE_IDLE_TIMEOUT     (2)     /* seconds */
 #define SCALE_TABLE_SIZE        (4096)
@@ -1317,3 +1318,4 @@ void player_deinit()
         g_default_decoder = NULL;
     }
 }
+#endif
