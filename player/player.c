@@ -358,7 +358,7 @@ PREPROCESS_EXIT_2:
     }
 }
 
-#define MAX_RESAMPLE_INPUT_FRAME (1152)
+#define MAX_RESAMPLE_INPUT_BYTES (128 * 2)
 
 static SRCState *g_pSRC = NULL;
 static int g_is_need_resample = 0;
@@ -373,13 +373,11 @@ int decoder_input(void *userdata, char *data, size_t data_len)
 
 void player_audio_resample_init(int samplerate, int resample_rate)
 {
-    int scale = resample_rate / samplerate;
+    int scale = resample_rate / samplerate + 1;
     int ret;
 
-    if (scale < 2)
-        scale = 2;
-    rs_input_buffer = (short *)audio_malloc(MAX_RESAMPLE_INPUT_FRAME * 2 * sizeof(short) + 128);
-    g_resample_buffer = (char *)audio_malloc(MAX_RESAMPLE_INPUT_FRAME * 2 * sizeof(short) * scale);
+    rs_input_buffer = (short *)audio_malloc(MAX_RESAMPLE_INPUT_BYTES + 128 * sizeof(short));
+    g_resample_buffer = (char *)audio_malloc(MAX_RESAMPLE_INPUT_BYTES * scale);
     g_pSRC = (SRCState *)audio_malloc(sizeof(SRCState));
 
     if ((rs_input_buffer == NULL) || (g_resample_buffer == NULL) || (g_pSRC == NULL))
@@ -388,7 +386,8 @@ void player_audio_resample_init(int samplerate, int resample_rate)
     }
     else
     {
-        memset((char *)rs_input_buffer, 0, MAX_RESAMPLE_INPUT_FRAME * 2 * sizeof(short) + 128);
+        /* Only need to initialize the first 128 shorts */
+        memset((char *)rs_input_buffer, 0, 128 * sizeof(short));
         ret = SRCInit(g_pSRC, samplerate, resample_rate);
         if (ret != 1)
         {
@@ -402,17 +401,31 @@ void player_audio_resample_init(int samplerate, int resample_rate)
 int player_audio_resample(player_handle_t player, char *data, size_t data_len)
 {
     int resample_out_len = 0;
-    int ret;
+    int in_len;
+    int ofs = 0;
+    int ret = 0;
 
     if ((rs_input_buffer == NULL) || (g_resample_buffer == NULL) || (g_pSRC == NULL))
     {
         ret = audio_stream_write(player->decode_stream, data, data_len);
         return ret;
     }
-    memcpy((char *)&rs_input_buffer[64], data, data_len);
-    resample_out_len = SRCFilter(g_pSRC, (short *)&rs_input_buffer[64], (short *)g_resample_buffer, data_len / 2);
-    resample_out_len *= 2;
-    ret = audio_stream_write(player->decode_stream, g_resample_buffer, resample_out_len);
+
+    do
+    {
+        if (data_len > MAX_RESAMPLE_INPUT_BYTES)
+            in_len = MAX_RESAMPLE_INPUT_BYTES;
+        else
+            in_len = data_len;
+        memcpy((char *)&rs_input_buffer[128], data + ofs, in_len);
+        resample_out_len = SRCFilter(g_pSRC, (short *)&rs_input_buffer[128], (short *)g_resample_buffer, in_len / 2);
+        resample_out_len *= 2;
+        ret |= audio_stream_write(player->decode_stream, g_resample_buffer, resample_out_len);
+        data_len -= in_len;
+        ofs += in_len;
+    }
+    while (data_len);
+
     return ret;
 }
 
