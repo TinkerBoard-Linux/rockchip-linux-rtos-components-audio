@@ -114,6 +114,10 @@ int pcm_set_config(struct pcm *pcm_dev, struct pcm_config config)
         audio_free(abuf);
         return ret;
     }
+    /* If audio plugin is disable, the result value will always be ERROR,
+     * do not check result value here
+     **/
+    audio_device_control(pcm_dev->device, RK_AUDIO_CTL_PLUGIN_PREPARE, (void *)SND_PCM_TYPE_SOFTVOL);
     ret = audio_device_control(pcm_dev->device, RK_AUDIO_CTL_HW_PARAMS, &aparams);
     if (ret)
     {
@@ -122,7 +126,7 @@ int pcm_set_config(struct pcm *pcm_dev, struct pcm_config config)
         return ret;
     }
     pcm_dev->prepared = RK_AUDIO_TRUE;
-    if (rec_vol.changed && pcm_dev->type == PCM_IN)
+    if (/*rec_vol.changed && */pcm_dev->type == PCM_IN)
     {
         audio_device_set_gain(pcm_dev->device, RECORD_CARD_CHANNEL_0, rec_vol.rec.dB);
         audio_device_set_gain(pcm_dev->device, RECORD_CARD_CHANNEL_1, rec_vol.rec.dB);
@@ -133,7 +137,7 @@ int pcm_set_config(struct pcm *pcm_dev, struct pcm_config config)
 
         rec_vol.changed = RK_AUDIO_FALSE;
     }
-    if (play_vol.changed && pcm_dev->type == PCM_OUT)
+    if (/*play_vol.changed && */pcm_dev->type == PCM_OUT)
     {
         audio_device_set_vol(pcm_dev->device, play_vol.play.vol);
         play_vol.play.vol = audio_device_get_vol(pcm_dev->device);
@@ -244,6 +248,7 @@ int pcm_stop(struct pcm *pcm_dev)
     if (!pcm_dev)
         return RK_AUDIO_FAILURE;
 
+    audio_device_control(pcm_dev->device, RK_AUDIO_CTL_PLUGIN_RELEASE, (void *)SND_PCM_TYPE_SOFTVOL);
     audio_device_control(pcm_dev->device, RK_AUDIO_CTL_STOP, NULL);
     audio_device_control(pcm_dev->device, RK_AUDIO_CTL_PCM_RELEASE, NULL);
     if (pcm_dev->user_data)
