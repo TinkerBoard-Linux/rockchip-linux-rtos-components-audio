@@ -59,6 +59,7 @@ struct player
     int playback;
     int playback_start;
     int out_ch;
+    int diff_out;
 };
 
 int player_init(void)
@@ -460,11 +461,23 @@ int decoder_output(void *userdata, char *data, size_t data_len)
         j = data_len - frame_bytes;
         data_len *= 2;
         data_stero = audio_malloc(data_len);
-        for (i = data_len - 2 * frame_bytes; i >= 0; i = i - frame_bytes * 2)
+        if (!player->diff_out)
         {
-            memcpy(data_stero + i, data + j, frame_bytes);
-            memcpy(data_stero + i + frame_bytes, data + j, frame_bytes);
-            j -= frame_bytes;
+            for (i = data_len - 2 * frame_bytes; i >= 0; i = i - frame_bytes * 2)
+            {
+                memcpy(data_stero + i, data + j, frame_bytes);
+                memcpy(data_stero + i + frame_bytes, data + j, frame_bytes);
+                j -= frame_bytes;
+            }
+        }
+        else
+        {
+            for (i = data_len - 2 * frame_bytes; i >= 0; i = i - frame_bytes * 2)
+            {
+                *(short *)(data_stero + i) = *(short *)(data + j);
+                *(short *)(data_stero + i + frame_bytes) = -*(short *)(data + j);
+                j -= frame_bytes;
+            }
         }
     }
     else if (player->out_ch == 1)
@@ -479,7 +492,15 @@ int decoder_output(void *userdata, char *data, size_t data_len)
                 data_mix = data_l + data_r - data_l * data_r / INT16_MIN;
             else
                 data_mix = data_l + data_r;
-            ((short *)data)[i + 1] = ((short *)data)[i] = (short)data_mix;
+            if (!player->diff_out)
+            {
+                ((short *)data)[i + 1] = ((short *)data)[i] = (short)data_mix;
+            }
+            else
+            {
+                ((short *)data)[i] = (short)data_mix;
+                ((short *)data)[i + 1] = -(short)data_mix;
+            }
         }
         data_stero = data;
     }
@@ -998,7 +1019,8 @@ player_handle_t player_create(player_cfg_t *cfg)
         player->name = cfg->name;
         player->device = cfg->device;
         player->resample_rate = cfg->resample_rate ? cfg->resample_rate : 48000;
-        player->out_ch = cfg->out_ch == 1 ? 1 : 2;
+        player->diff_out = cfg->diff_out == 1 ? 1 : 0;
+        player->out_ch = cfg->out_ch == 1 ? 1 : (player->diff_out == 1 ? 1 : 2);
         player->state = PLAYER_STATE_IDLE;
 
         preprocess_stack_size = cfg->preprocess_stack_size ? cfg->preprocess_stack_size : 4096;
