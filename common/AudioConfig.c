@@ -9,7 +9,11 @@
 audio_player_thread_handle audio_thread_create(char *name, uint32_t StackDeep, uint32_t Priority, audio_thread_cfg_t *cfg)
 {
     RK_AUDIO_LOG_D("audio_thread_create.");
-    return rktm_create_task((pTaskFunType)cfg->run, NULL, NULL, name, StackDeep, Priority, (void *)cfg->args);
+    RK_TASK_CLASS *handle;
+    handle = (RK_TASK_CLASS *)rktm_create_task((pTaskFunType)cfg->run, NULL, NULL, name, StackDeep, Priority, (void *)cfg->args);
+    handle->suspend_mode = DISABLE_MODE;
+
+    return (audio_player_thread_handle)handle;
 }
 
 void audio_thread_exit(audio_player_thread_handle self)
