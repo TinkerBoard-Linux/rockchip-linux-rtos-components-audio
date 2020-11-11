@@ -32,7 +32,7 @@ RK_AUDIO_USED static int check_http_audio_type(char *target, char *type)
     }
     else
     {
-        return RK_AUDIO_FAILURE;
+        strcpy(type, "null");
     }
     return RK_AUDIO_SUCCESS;
 }
@@ -106,13 +106,7 @@ REDO:
     }
     if (!cfg->isOta)
     {
-        int ret = check_http_audio_type(resp.content_type, cfg->type);
-        if (ret != 0)
-        {
-            RK_AUDIO_LOG_E("can't find decode type");
-            bSucc = RK_AUDIO_FALSE;
-            goto END;
-        }
+        check_http_audio_type(resp.content_type, cfg->type);
     }
 
     self->userdata = (void *)http_socket;
