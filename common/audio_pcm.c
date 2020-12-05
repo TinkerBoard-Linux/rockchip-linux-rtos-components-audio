@@ -140,7 +140,6 @@ int pcm_set_config(struct pcm *pcm_dev, struct pcm_config config)
     if (/*play_vol.changed && */pcm_dev->type == PCM_OUT)
     {
         audio_device_set_vol(pcm_dev->device, play_vol.play.vol);
-        play_vol.play.vol = audio_device_get_vol(pcm_dev->device);
         play_vol.changed = RK_AUDIO_FALSE;
     }
 
@@ -172,16 +171,16 @@ int pcm_set_volume(struct pcm *pcm_dev, int vol, int vol2, int flag)
     switch (flag)
     {
     case AUDIO_FLAG_RDONLY:
+        rec_vol.rec.dB = vol;
+        rec_vol.rec.dB_lp = vol2;
         audio_device_set_gain(pcm_dev->device, RECORD_CARD_CHANNEL_0, vol);
         audio_device_set_gain(pcm_dev->device, RECORD_CARD_CHANNEL_1, vol);
-        rec_vol.rec.dB = audio_device_get_gain(pcm_dev->device, RECORD_CARD_CHANNEL_0);
         audio_device_set_gain(pcm_dev->device, RECORD_CARD_CHANNEL_2, vol2);
-        rec_vol.rec.dB_lp = audio_device_get_gain(pcm_dev->device, RECORD_CARD_CHANNEL_2);
         return RK_AUDIO_SUCCESS;
 
     case AUDIO_FLAG_WRONLY:
+        play_vol.play.vol = vol;
         audio_device_set_vol(pcm_dev->device, vol);
-        play_vol.play.vol = audio_device_get_vol(pcm_dev->device);
         return RK_AUDIO_SUCCESS;
 
     default:
@@ -192,6 +191,8 @@ int pcm_set_volume(struct pcm *pcm_dev, int vol, int vol2, int flag)
 
 int pcm_get_volume(struct pcm *pcm_dev, int *vol, int *vol2, int flag)
 {
+    int ret;
+
     if (pcm_dev && pcm_dev->prepared)
     {
         switch (flag)
@@ -202,7 +203,9 @@ int pcm_get_volume(struct pcm *pcm_dev, int *vol, int *vol2, int flag)
             break;
 
         case AUDIO_FLAG_WRONLY:
-            play_vol.play.vol = audio_device_get_vol(pcm_dev->device);
+            ret = audio_device_get_vol(pcm_dev->device);
+            if (ret != RK_AUDIO_FAILURE)
+                play_vol.play.vol = ret;
             break;
 
         default:

@@ -91,7 +91,7 @@ int capture_set_volume(int vol, int vol2)
     pcm_get_volume(capture_handle, &_vol, &_vol2, AUDIO_FLAG_RDONLY);
 
     if (_vol != vol || _vol2 != vol2)
-        RK_AUDIO_LOG_W("[%d, %d] -> [%d, %d]", vol, vol2, _vol, _vol2);
+        RK_AUDIO_LOG_D("[%d, %d] -> [%d, %d]", vol, vol2, _vol, _vol2);
 
     return ((_vol << 16) | (_vol2 & 0xFFFF));
 }

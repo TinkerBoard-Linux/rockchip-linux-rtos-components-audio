@@ -12,6 +12,7 @@
 #include <strings.h>
 #include <stdio.h>
 #include <errno.h>
+#include <math.h>
 
 #if defined(__RK_OS__)
 #define OS_IS_FREERTOS
@@ -103,7 +104,6 @@ typedef void *HDC;
 
 #include "audio_server.h"
 #include "audio_ctrl.h"
-#include "audio_server.h"
 
 #include "mp3_hal.h"
 #include "codec/decode/amr/amr_dec_hal.h"
@@ -204,6 +204,12 @@ struct audio_player_queue
     audio_player_queue_state_t state;
 };
 
+typedef struct snd_softvol
+{
+    uint16_t vol_l;
+    uint16_t vol_r;
+} snd_softvol_t;
+
 typedef enum
 {
     AUDIO_STREAM_STATE_IDLE = 0x0,
@@ -255,7 +261,7 @@ int audio_device_control(void *dev, uint32_t cmd, void *arg);
 int audio_device_close(void *dev);
 unsigned long audio_device_write(void *dev, char *data, unsigned long frames);
 unsigned long audio_device_read(void *dev, char *data, unsigned long frames);
-void audio_device_set_vol(void *dev, int vol);
+int audio_device_set_vol(void *dev, int vol);
 int audio_device_get_vol(void *dev);
 void audio_device_set_gain(void *dev, int ch, int dB);
 int audio_device_get_gain(void *dev, int ch);
@@ -272,6 +278,7 @@ int audio_fsync(int fd);
 uint32_t audio_fstat(char *file_path, int stream);
 uint32_t audio_ftell(int stream);
 int audio_fseek(int stream, int32_t offset, uint32_t pos);
+int audio_persent_to_dB(int mindB, int maxdB, int persent);
 
 int check_native_audio_type(char *target, char *type);
 

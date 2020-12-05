@@ -80,7 +80,7 @@ int playback_set_volume(int vol)
     pcm_get_volume(playback_handle, &_vol, NULL, AUDIO_FLAG_WRONLY);
 
     if (_vol != vol)
-        RK_AUDIO_LOG_W("[%d] -> [%d]", vol, _vol);
+        RK_AUDIO_LOG_D("[%d] -> [%d]", vol, _vol);
 
     return _vol;
 }

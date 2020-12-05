@@ -160,9 +160,11 @@ unsigned long audio_device_read(void *dev, char *data, unsigned long frames)
     return rkdev_read(dev, 0, data, frames);
 }
 
-void audio_device_set_vol(void *dev, int vol)
+int audio_device_set_vol(void *dev, int vol)
 {
     SystemSetVol(dev, vol);
+
+    return RK_AUDIO_SUCCESS;
 }
 
 int audio_device_get_vol(void *dev)
@@ -396,22 +398,66 @@ unsigned long audio_device_read(void *dev, char *data, unsigned long frames)
     return rt_device_read(dev, 0, data, frames);
 }
 
-void audio_device_set_vol(void *dev, uint32_t vol)
+int audio_device_set_vol(void *dev, int vol)
 {
+    struct AUDIO_GAIN_INFO gainInfo;
+    struct AUDIO_DB_CONFIG db_config;
+    snd_softvol_t softvol;
+    int ret;
 
+    softvol.vol_l = vol;
+    softvol.vol_r = vol;
+    ret = rt_device_control(dev, RK_AUDIO_CTL_PLUGIN_SET_SOFTVOL, &softvol);
+    if (ret == RK_AUDIO_SUCCESS)
+        return RK_AUDIO_SUCCESS;
+
+    ret = rt_device_control(dev, RK_AUDIO_CTL_GET_GAIN_INFO, &gainInfo);
+    if (ret == RK_AUDIO_SUCCESS && gainInfo.step != 0)
+    {
+        int dB;
+
+        if (vol > 100)
+            vol = 100;
+        if (vol < 0)
+            vol = 0;
+        RK_AUDIO_LOG_D("Get Max dB %ld, Min dB %ld, Step %ld", gainInfo.maxdB, gainInfo.mindB, gainInfo.step);
+        if (vol == 0)
+            dB = gainInfo.mindB;
+        else
+            dB = audio_persent_to_dB(gainInfo.mindB, gainInfo.maxdB, vol) / gainInfo.step * gainInfo.step;
+        db_config.dB = dB;
+        db_config.ch = 0;
+        RK_AUDIO_LOG_D("Set %d of 100, equal to %d dB", vol, db_config.dB);
+        ret = rt_device_control(dev, RK_AUDIO_CTL_SET_GAIN, &db_config);
+        ret = rt_device_control(dev, RK_AUDIO_CTL_GET_GAIN, &db_config);
+        if (db_config.dB != dB)
+        {
+            RK_AUDIO_LOG_D("Set %d dB failed\n", dB);
+            return RK_AUDIO_FAILURE;
+        }
+    }
+
+    return ret;
 }
 
 int audio_device_get_vol(void *dev)
 {
-    return 0;
+    snd_softvol_t softvol;
+    int ret;
+
+    ret = rt_device_control(dev, RK_AUDIO_CTL_PLUGIN_GET_SOFTVOL, &softvol);
+    if (ret == RK_AUDIO_SUCCESS)
+        return softvol.vol_l;
+
+    return RK_AUDIO_FAILURE;
 }
 
-void audio_device_set_gain(void *dev, uint32_t dB)
+void audio_device_set_gain(void *dev, int ch, int dB)
 {
 
 }
 
-int audio_device_get_gain(void *dev)
+int audio_device_get_gain(void *dev, int ch)
 {
     return 0;
 }
@@ -463,6 +509,11 @@ void audio_sleep(uint32_t ms)
     rt_thread_mdelay(ms);
 }
 #endif
+
+int audio_persent_to_dB(int mindB, int maxdB, int persent)
+{
+    return ((log(persent) / log(100)) * (maxdB - mindB) + mindB);
+}
 
 void audio_cache_ops(int ops, void *addr, int size)
 {
