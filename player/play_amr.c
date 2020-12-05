@@ -138,7 +138,7 @@ play_decoder_error_t play_amr_process_impl(struct play_decoder *self)
     while (1)
     {
         // Read the mode byte
-        read_bytes = amr->input(amr->userdata, g_Amr->_buffer_in, 1);
+        read_bytes = amr->input(amr->userdata, (char *)g_Amr->_buffer_in, 1);
         if (read_bytes == 0)
         {
             return PLAY_DECODER_SUCCESS;
@@ -172,13 +172,13 @@ play_decoder_error_t play_amr_process_impl(struct play_decoder *self)
         if (old_mode != -1 && mode != old_mode)
         {
             RK_AUDIO_LOG_W("Bad frame %d != %d, %d", mode, old_mode, frame_size);
-            amr->input(amr->userdata, g_Amr->_buffer_in + 1, frame_size);
+            amr->input(amr->userdata, (char *)(g_Amr->_buffer_in + 1), frame_size);
             continue;
         }
         old_mode = mode;
 
         // Harded code the frame size
-        read_bytes = amr->input(amr->userdata, g_Amr->_buffer_in + 1, frame_size);
+        read_bytes = amr->input(amr->userdata, (char *)(g_Amr->_buffer_in + 1), frame_size);
         if (read_bytes != frame_size)
         {
             RK_AUDIO_LOG_E("read amr frame failed");

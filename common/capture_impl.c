@@ -93,7 +93,7 @@ int capture_set_volume(int vol, int vol2)
     if (_vol != vol || _vol2 != vol2)
         RK_AUDIO_LOG_W("[%d, %d] -> [%d, %d]", vol, vol2, _vol, _vol2);
 
-    return ((_vol << 16) | _vol2 & 0xFFFF);
+    return ((_vol << 16) | (_vol2 & 0xFFFF));
 }
 
 int capture_device_read_impl(struct capture_device *self, const char *data, size_t data_len)

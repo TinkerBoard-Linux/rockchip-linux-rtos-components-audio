@@ -1110,7 +1110,7 @@ int player_play(player_handle_t self, play_cfg_t *cfg)
         player->target = cfg->target;
     }
 
-    RK_AUDIO_LOG_V("Target [%s], start %d s", player->target, player->start_time);
+    RK_AUDIO_LOG_V("Target [%s], start %ld s", player->target, player->start_time);
 
     audio_queue_send(player->preprocess_queue, &msg);
     while ((self->state != PLAYER_STATE_RUNNING) && (self->state != PLAYER_STATE_ERROR))
