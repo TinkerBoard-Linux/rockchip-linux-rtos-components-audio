@@ -84,6 +84,16 @@ int player_register_amrdec(void)
     return player_register_decoder("amr", &amr_decoder);
 }
 
+int player_register_apedec(void)
+{
+#ifdef AUDIO_DECODER_APE
+    play_decoder_t ape_decoder = DEFAULT_APE_DECODER;
+    return player_register_decoder("ape", &ape_decoder);
+#else
+    return 0;
+#endif
+}
+
 int player_list_decoder(void)
 {
     if (g_default_decoder == NULL)

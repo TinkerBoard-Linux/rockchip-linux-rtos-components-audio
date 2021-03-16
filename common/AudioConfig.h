@@ -112,6 +112,9 @@ typedef void *HDC;
 #include "play_pcm.h"
 #include "play_wav.h"
 #include "play_amr.h"
+#ifdef AUDIO_DECODER_APE
+#include "play_ape.h"
+#endif
 #include "record_amr.h"
 #include "record_pcm.h"
 #include "record_wav.h"
