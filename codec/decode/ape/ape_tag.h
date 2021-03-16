@@ -14,7 +14,6 @@
 
 #include "play_ape.h"
 
-unsigned int CheckID3V2Tag(unsigned char *pucBuffer);
 int ape_read_header(APEDec *dec, struct play_ape *ape);
 int ape_release_header(APEDec *dec);
 

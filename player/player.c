@@ -213,7 +213,6 @@ void *preprocess_run(void *data)
     play_preprocessor_t preprocessor;
     int res;
     char *read_buf;
-    char *header_buf;
     size_t read_size = 0;
     size_t frame_size = 0;
     if (!processor_cfg)
@@ -274,18 +273,7 @@ __PREPROCESS_ERROR:
             {
                 player->listen(player, PLAY_INFO_PREPROCESS, player->userdata);
             }
-            goto PREPROCESS_EXIT_2;
-        }
-        header_buf = audio_malloc(MAX_HEADER_LEN);
-        if (!header_buf)
-        {
-            RK_AUDIO_LOG_E("can't audio_malloc buffer %d", MAX_HEADER_LEN);
-            player->state = PLAYER_STATE_ERROR;
-            if (player->listen)
-            {
-                player->listen(player, PLAY_INFO_PREPROCESS, player->userdata);
-            }
-            goto PREPROCESS_EXIT_1;
+            goto PREPROCESS_EXIT;
         }
 
         decode_msg.type = msg.type;
@@ -294,16 +282,12 @@ __PREPROCESS_ERROR:
         decode_msg.player.need_free = msg.player.need_free;
         decode_msg.player.end_session = msg.player.end_session;
         decode_msg.player.type = processor_cfg->type;
-        decode_msg.player.priv_data = header_buf;
 
         RK_AUDIO_LOG_D("send msg to decode");
         if (msg.type == CMD_PLAYER_PLAY)
         {
-            read_size = preprocessor.read(&preprocessor, header_buf, MAX_HEADER_LEN);
             audio_stream_start(player->preprocess_stream);
             audio_queue_send(player->decode_queue, &decode_msg);
-            if (read_size > 0)
-                audio_stream_write(player->preprocess_stream, header_buf, read_size);
         }
         else if (msg.type == CMD_PLAYER_SEEK)
         {
@@ -319,7 +303,6 @@ retry:
                 {
                     RK_AUDIO_LOG_E("can't get preprocess msg");
                     audio_stream_stop(player->preprocess_stream);
-                    audio_free(header_buf);
                     audio_free(read_buf);
                     preprocessor.destroy(&preprocessor);
                     goto  __PREPROCESS_ERROR;
@@ -360,10 +343,8 @@ retry:
             timeout = 0;
         }
         while (audio_stream_write(player->preprocess_stream, read_buf, read_size) != -1);
-        audio_free(header_buf);
-PREPROCESS_EXIT_1:
         audio_free(read_buf);
-PREPROCESS_EXIT_2:
+PREPROCESS_EXIT:
         preprocessor.destroy(&preprocessor);
         RK_AUDIO_LOG_V("out");
     }
@@ -593,11 +574,22 @@ int decoder_post(void *userdata, int samplerate, int bits, int channels)
     return RK_AUDIO_SUCCESS;
 }
 
+static void decoder_error(player_handle_t player)
+{
+    audio_stream_stop(player->preprocess_stream);
+    audio_mutex_lock(player->state_lock);
+    player->state = PLAYER_STATE_ERROR;
+    if (player->listen)
+        player->listen(player, PLAY_INFO_DECODE, player->userdata);
+    audio_mutex_unlock(player->state_lock);
+}
+
 void *decoder_run(void *data)
 {
     player_handle_t player = (player_handle_t) data;
     //play_decoder_cfg_t* decoder_cfg = (play_decoder_cfg_t*)audio_calloc(1,sizeof(*decoder_cfg));
     play_decoder_t decoder;
+    char *header_buf;
     bool is_found_decoder = false;
     play_decoder_error_t decode_res;
     media_sdk_msg_t decode_msg;
@@ -612,17 +604,73 @@ void *decoder_run(void *data)
 
     while (1)
     {
+DECODER_WAIT:
         if (audio_queue_receive(player->decode_queue, &decode_msg) == -1)
         {
             RK_AUDIO_LOG_E("can't get msg");
             return NULL;
         }
+
+        header_buf = audio_malloc(MAX_HEADER_LEN);
+        if (header_buf == NULL)
+        {
+            RK_AUDIO_LOG_E("header buf %d malloc failed", MAX_HEADER_LEN);
+            continue;
+        }
+        if (decoder_input(player, header_buf, MAX_HEADER_LEN) != MAX_HEADER_LEN)
+        {
+            RK_AUDIO_LOG_E("decoder input failed");
+            decoder_error(player);
+            audio_free(header_buf);
+            continue;
+        }
+
+        int id3_len = check_ID3V2_tag(header_buf);
+        if (id3_len)
+        {
+            int need_len = 0;
+            id3_len += 10;
+            if (id3_len >= MAX_HEADER_LEN)
+            {
+                int len;
+                id3_len -= MAX_HEADER_LEN;
+                while (id3_len)
+                {
+                    if (id3_len > MAX_HEADER_LEN)
+                        len = MAX_HEADER_LEN;
+                    else
+                        len = id3_len;
+                    if (decoder_input(player, header_buf, len) != len)
+                    {
+                        RK_AUDIO_LOG_E("decoder input failed");
+                        decoder_error(player);
+                        audio_free(header_buf);
+                        goto DECODER_WAIT;
+                    }
+                    id3_len -= len;
+                }
+                need_len = MAX_HEADER_LEN;
+            }
+            else
+            {
+                memcpy(header_buf, header_buf + id3_len, MAX_HEADER_LEN - id3_len);
+                need_len = id3_len;
+            }
+            if (need_len && decoder_input(player, header_buf, need_len) != need_len)
+            {
+                RK_AUDIO_LOG_E("decoder input failed");
+                decoder_error(player);
+                audio_free(header_buf);
+                continue;
+            }
+        }
+
         play_decoder_t *p = g_default_decoder;
         is_found_decoder = false;
         /* Find decoder by header info */
         while (p)
         {
-            if (p->check && p->check(decode_msg.player.priv_data, MAX_HEADER_LEN) == 0)
+            if (p->check && p->check(header_buf, MAX_HEADER_LEN) == 0)
             {
                 decoder = *p;
                 is_found_decoder = true;
@@ -632,10 +680,12 @@ void *decoder_run(void *data)
             p = p->next;
         }
 
+        audio_free(header_buf);
+
         /* Find decoder by file extension */
         if (is_found_decoder == false)
         {
-            play_decoder_t *p = g_default_decoder;
+            p = g_default_decoder;
             while (is_found_decoder == false && p)
             {
                 if (!strcasecmp(decode_msg.player.type, p->type))
@@ -664,6 +714,7 @@ void *decoder_run(void *data)
             if (player->start_time && !decoder.support_seek)
                 player->start_time = 0;
             RK_AUDIO_LOG_D("decode init.");
+            player_preprocess_seek(player, 0);
 #ifdef CONFIG_FWANALYSIS_SEGMENT
             FW_LoadSegment(decoder.segment, SEGMENT_OVERLAY_ALL);
 #endif

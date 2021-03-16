@@ -16,15 +16,17 @@
 
 int play_ape_check_impl(char *buf, int len)
 {
-    // int id3_len = CheckID3V2Tag((unsigned char *)buf);
-    // if (id3_len)
-    //     buf += id3_len + 10;
-    if ((buf[0] == 'I') &&
-        (buf[1] == 'D') &&
-        (buf[2] == '3') &&
-        (buf[3] == 0x3))
+    int id3_len;
+
+    id3_len = check_ID3V2_tag(buf);
+    if (id3_len)
     {
-        return RT_EOK;
+        if (id3_len + 10 + 2 > len)
+        {
+            RK_AUDIO_LOG_W("buf not enough, abort");
+            return RK_AUDIO_FAILURE;
+        }
+        buf += (id3_len + 10);
     }
 
     if ((buf[0] == 'M') &&
@@ -79,14 +81,14 @@ play_decoder_error_t play_ape_process_impl(struct play_decoder *self)
     uint32_t read_bytes;
     uint32_t write_bytes;
     int finish = 0;
-    uint8_t buf[10];
+    char buf[10];
     int ret;
     int err = PLAY_DECODER_SUCCESS;
 
-    read_bytes = ape->input(ape->userdata, (char *)buf, 10);
+    read_bytes = ape->input(ape->userdata, buf, 10);
     if (read_bytes <= 0)
         return PLAY_DECODER_INPUT_ERROR;
-    dec->ID3_len = CheckID3V2Tag(buf);
+    dec->ID3_len = check_ID3V2_tag(buf);
     if (dec->ID3_len == 0)
     {
         player_preprocess_seek(ape->userdata, 0);

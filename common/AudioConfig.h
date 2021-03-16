@@ -284,6 +284,7 @@ int audio_fseek(int stream, int32_t offset, uint32_t pos);
 int audio_persent_to_dB(int mindB, int maxdB, int persent);
 
 int check_native_audio_type(char *target, char *type);
+int check_ID3V2_tag(char *buf);
 
 int capture_set_volume(int vol, int vol2);
 

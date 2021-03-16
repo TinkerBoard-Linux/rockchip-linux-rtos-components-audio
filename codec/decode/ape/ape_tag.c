@@ -12,39 +12,6 @@
 #include "play_ape.h"
 #include "ape.h"
 
-int CheckID3V2Tag(unsigned char *pucBuffer)
-{
-    // The first three bytes of the tag should be "ID3".
-    if ((pucBuffer[0] !=  'I') || (pucBuffer[1] != 'D') || (pucBuffer[2] != '3'))
-    {
-        return (0);
-    }
-
-    // The next byte should be the value 3 (i.e. we support ID3v2.3.0).
-    if (pucBuffer[3] != 3)
-    {
-        return (0);
-    }
-
-    // The next byte should be less than 0xff.
-    if (pucBuffer[4] == 0xff)
-    {
-        return (0);
-    }
-
-    // We don't care about the next byte. The following four bytes should be
-    // less than 0x80.
-    if ((pucBuffer[6] >=  0x80) || (pucBuffer[7] >= 0x80)  ||
-            (pucBuffer[8] >=  0x80) || (pucBuffer[9] >= 0x80))
-    {
-        return (0);
-    }
-
-    // Return the length of the ID3v2 tag.
-    return ((pucBuffer[6] << 21) | (pucBuffer[7] << 14) |
-            (pucBuffer[8] << 7) | pucBuffer[9]);
-}
-
 static inline uint16_t _get_le16(char *buf)
 {
     return ((buf[1] << 8) + buf[0]);

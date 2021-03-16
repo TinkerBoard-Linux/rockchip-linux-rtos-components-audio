@@ -21,8 +21,18 @@ const static char ver[4][20] =
 
 int play_mp3_check_impl(char *buf, int len)
 {
-    if (strncmp(buf, "ID3", 3) == 0)
-        return RK_AUDIO_SUCCESS;
+    int id3_len;
+
+    id3_len = check_ID3V2_tag(buf);
+    if (id3_len)
+    {
+        if (id3_len + 10 + 2 > len)
+        {
+            RK_AUDIO_LOG_W("buf not enough, abort");
+            return RK_AUDIO_FAILURE;
+        }
+        buf += (id3_len + 10);
+    }
 
     if ((buf[0] == 0xFF) &&
         ((buf[1] & 0xE0) == 0xE0))
@@ -111,14 +121,11 @@ play_decoder_error_t play_mp3_process_impl(struct play_decoder *self)
     }
 
     n = MP3_ID3V2_HEADER_LENGHT;
-    if (!memcmp(mp3->read_buf, "ID3", 3))
+    id3_length = check_ID3V2_tag(mp3->read_buf);
+    if (id3_length)
     {
-        RK_AUDIO_LOG_D("find id3");
-        _id3_length = id3_length = (mp3->read_buf[6] & 0x7f) << 21 |
-                                   (mp3->read_buf[7] & 0x7f) << 14 |
-                                   (mp3->read_buf[8] & 0x7f) << 7 |
-                                   (mp3->read_buf[9] & 0x7f) ;
-        RK_AUDIO_LOG_D("id3_length:%d", id3_length);
+        RK_AUDIO_LOG_D("find id3 len %d", id3_length);
+        _id3_length = id3_length;
         if (id3_length > 0)
         {
             while (1)
