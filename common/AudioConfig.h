@@ -10,7 +10,9 @@
 #include <unistd.h>
 #include <string.h>
 #include <strings.h>
+#include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <errno.h>
 #include <math.h>
 
@@ -98,6 +100,40 @@
 #define AUDIO_TIMER_ONCE            RT_TIMER_FLAG_ONE_SHOT
 
 typedef void *HDC;
+
+#elif defined(__LINUX__)
+#include <alsa/asoundlib.h>
+#include <pthread.h>
+#include <semaphore.h>
+#include <sys/stat.h>
+#define OS_IS_LINUX
+#define RK_AUDIO_USED
+#define RK_AUDIO_UNUSED
+
+#ifndef false
+#define false   0
+#endif
+
+#ifndef true
+#define true    1
+#endif
+
+#define PLAYER_TASK_PRIORITY        14
+#define RECORDER_TASK_PRIORITY      14
+
+#define RK_AUDIO_SUCCESS            0
+#define RK_AUDIO_FAILURE            -1
+#define RK_AUDIO_CACHE_INVALIDATE   0
+#define RK_AUDIO_CACHE_FLUSH        1
+#define AUDIO_FLAG_RDONLY           0
+#define AUDIO_FLAG_WRONLY           1
+#define AUDIO_FLAG_RDWR             2
+#define AUDIO_TICK_PER_SEC          1000
+#define AUDIO_TIMER_PERIOD          100
+#define AUDIO_TIMER_ONCE            0
+
+typedef void *HDC;
+
 #else
 #error  "Not Support System OS"
 #endif
@@ -158,7 +194,7 @@ typedef void *HDC;
 #if defined(__RK_OS__)
 #define LOG_PREFIX      "\n "
 #define LOG_SUFFIX      ""
-#elif defined(__RT_THREAD__)
+#else
 #define LOG_PREFIX      ""
 #define LOG_SUFFIX      "\n"
 #endif

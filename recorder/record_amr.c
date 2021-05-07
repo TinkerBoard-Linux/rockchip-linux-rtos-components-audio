@@ -6,6 +6,7 @@
 
 #include "AudioConfig.h"
 
+#ifdef AUDIO_ENCODER_AMR
 #define SAMPLE_PER_FRAME 160
 
 struct record_amr
@@ -133,3 +134,4 @@ void record_amr_destroy(struct record_encoder *self)
     // AudioSendMsg(TYPE_AUDIO_AMR_ENC, MEDIA_MSGBOX_CMD_ENCODE_CLOSE);
     g_amr_share_data.type = TYPE_DATA_MAX;
 }
+#endif

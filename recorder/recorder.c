@@ -71,8 +71,13 @@ int recorder_register_mp3enc(void)
 
 int recorder_register_amrenc(void)
 {
+#ifdef AUDIO_ENCODER_AMR
     record_encoder_t amr_encoder = DEFAULT_AMR_ENCODER;
     return recorder_register_encoder("amr", &amr_encoder);
+#else
+    RK_AUDIO_LOG_E("Encoder AMR is not enable");
+    return RK_AUDIO_FAILURE;
+#endif
 }
 
 int recorder_list_encoder(void)
@@ -451,11 +456,7 @@ void encoder_run(void *data)
             audio_cfg.sample_rate = recorder->samplerate;
             audio_cfg.bits = recorder->bits;
             audio_cfg.channels = recorder->channels;
-#ifdef OS_IS_FREERTOS
-            rk_dcache_ops(RK_HW_CACHE_CLEAN, recorder, sizeof(struct recorder));
-#else
-            rt_hw_cpu_dcache_ops(RT_HW_CACHE_FLUSH, recorder, sizeof(struct recorder));
-#endif
+            audio_cache_ops(RK_AUDIO_CACHE_FLUSH, recorder, sizeof(struct recorder));
             encoder.userdata = &audio_cfg;
             encoder_cfg.input = encoder_input;
             encoder_cfg.output = encoder_output;

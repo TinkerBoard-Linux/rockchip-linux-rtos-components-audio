@@ -6,6 +6,7 @@
 
 #include "play_mp3.h"
 
+#ifdef AUDIO_DECODER_MP3
 typedef struct play_mp3 *play_mp3_handle_t;
 static short *pi_pcmbuf = NULL;
 MP3PLAYERINFO *g_pMPI = NULL;
@@ -340,3 +341,4 @@ void play_mp3_destroy_impl(struct play_decoder *self)
 
     RK_AUDIO_LOG_D("out");
 }
+#endif

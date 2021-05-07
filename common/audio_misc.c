@@ -1,11 +1,22 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
 /*
- * SPDX-License-Identifier: BSD-3-Clause
- *
- * Copyright (c) 2019 Fuzhou Rockchip Electronics Co., Ltd
+ * Copyright (c) 2021 Rockchip Electronics Co., Ltd
  */
 
 #include "AudioConfig.h"
-#include <string.h>
+
+int check_native_audio_type(char *target, char *type)
+{
+    char *p = strrchr(target, '.');
+    if (!p)
+    {
+        RK_AUDIO_LOG_E("target is NULL");
+        return RK_AUDIO_FAILURE;
+    }
+    strcpy(type, p + 1);
+
+    return RK_AUDIO_SUCCESS;
+}
 
 int wav_header_init(struct wav_header *head, int samplerate, int bits, int channels)
 {

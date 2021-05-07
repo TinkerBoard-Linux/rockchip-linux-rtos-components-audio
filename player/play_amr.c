@@ -6,6 +6,7 @@
 
 #include "AudioConfig.h"
 
+#ifdef AUDIO_DECODER_AMR
 static int amrnb_frame_size[] = { 12, 13, 15, 17, 19, 20, 26, 31, -1, -1, -1, -1, -1, -1, -1, 0 };
 static int amrwb_frame_size[] = { 17, 23, 32, 36, 40, 46, 50, 58, 60,  5, -1, -1, -1, -1, -1, 0 };
 
@@ -222,3 +223,4 @@ void play_amr_destroy_impl(struct play_decoder *self)
 
     RK_AUDIO_LOG_D("out");
 }
+#endif

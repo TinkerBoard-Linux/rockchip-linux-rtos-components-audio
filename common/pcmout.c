@@ -12,9 +12,13 @@ static FILE *fd = NULL;
 int pcmout_open_impl(struct playback_device *self, playback_device_cfg_t *cfg)
 {
     if (fd == NULL)
-        fd = fopen("sdcard/playback.pcm", "w+");
+        fd = fopen(cfg->card_name, "w+");
 
-    return RK_AUDIO_SUCCESS;
+    RK_AUDIO_LOG_V("%s %p", cfg->card_name, fd);
+    if (fd)
+        return RK_AUDIO_SUCCESS;
+    else
+        return RK_AUDIO_FAILURE;
 }
 
 int pcmout_start_impl(struct playback_device *self)

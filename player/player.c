@@ -74,14 +74,24 @@ int player_init(void)
 
 int player_register_mp3dec(void)
 {
+#ifdef AUDIO_DECODER_MP3
     play_decoder_t mp3_decoder = DEFAULT_MP3_DECODER;
     return player_register_decoder("mp3", &mp3_decoder);
+#else
+    RK_AUDIO_LOG_E("Decoder MP3 is not enable");
+    return RK_AUDIO_FAILURE;
+#endif
 }
 
 int player_register_amrdec(void)
 {
+#ifdef AUDIO_DECODER_AMR
     play_decoder_t amr_decoder = DEFAULT_AMR_DECODER;
     return player_register_decoder("amr", &amr_decoder);
+#else
+    RK_AUDIO_LOG_E("Decoder AMR is not enable");
+    return RK_AUDIO_FAILURE;
+#endif
 }
 
 int player_register_apedec(void)
