@@ -1014,7 +1014,8 @@ int audio_stream_write(struct audio_player_stream *self, const char *data, size_
         while (1)
         {
             audio_mutex_lock(self->lock);
-            if (!(self->state & AUDIO_STREAM_STATE_RUN))
+            if (!(self->state & AUDIO_STREAM_STATE_RUN) ||
+                 (self->state & AUDIO_STREAM_STATE_RESET))
             {
                 audio_mutex_unlock(self->lock);
                 return 0;
