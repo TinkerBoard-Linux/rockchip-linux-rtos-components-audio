@@ -695,6 +695,9 @@ struct audio_player_queue *audio_queue_create(size_t item_count, size_t item_siz
 {
     struct audio_player_queue *queue = (struct audio_player_queue *)audio_calloc(1, sizeof(*queue));
     int i;
+    if (!queue)
+        return NULL;
+    memset(queue, 0x0, sizeof(*queue));
     queue->item_count = item_count;
     queue->item_size = item_size;
     queue->fill = 0;
@@ -706,13 +709,37 @@ struct audio_player_queue *audio_queue_create(size_t item_count, size_t item_siz
     for (i = 0; i < item_count; i++)
     {
         queue->item[i] = audio_calloc(1, item_size);
+        if (queue->item[i] == NULL)
+            goto ERR;
     }
     queue->lock = audio_mutex_create();
+    if (queue->lock == NULL)
+        goto ERR;
     queue->read_sem = audio_semaphore_create();
+    if (queue->read_sem == NULL)
+        goto ERR;
     queue->write_sem = audio_semaphore_create();
+    if (queue->write_sem == NULL)
+        goto ERR;
     RK_AUDIO_LOG_D("item_count create =%x, %d.", queue, item_count);
 
     return queue;
+ERR:
+    RK_AUDIO_LOG_E("No enough memory");
+    for (i = 0; i < item_count; i++)
+    {
+        if (queue->item[i])
+            audio_free(queue->item[i]);
+    }
+    if (queue->lock)
+        audio_mutex_destroy(queue->lock);
+    if (queue->read_sem)
+        audio_semaphore_destroy(queue->read_sem);
+    if (queue->write_sem)
+        audio_semaphore_destroy(queue->write_sem);
+    audio_free(queue);
+
+    return NULL;
 }
 
 int audio_queue_send(struct audio_player_queue *self, const void *data)
@@ -894,13 +921,35 @@ struct audio_player_stream *audio_stream_create(size_t size)
     struct audio_player_stream *stream = (struct audio_player_stream *) audio_calloc(1, sizeof(struct audio_stream));
     if (stream)
     {
+        memset(stream, 0x0, sizeof(struct audio_stream));
         stream->buf_size = size;
         stream->buf = (char *)audio_calloc(1, size);
+        if (stream->buf == NULL)
+            goto ERR;
         stream->lock = audio_mutex_create();
+        if (stream->lock == NULL)
+            goto ERR;
         stream->read_sem = audio_semaphore_create();
+        if (stream->read_sem == NULL)
+            goto ERR;
         stream->write_sem = audio_semaphore_create();
+        if (stream->write_sem == NULL)
+            goto ERR;
     }
     return stream;
+ERR:
+    RK_AUDIO_LOG_E("No enough memory");
+    if (stream->buf)
+        audio_free(stream->buf);
+    if (stream->lock)
+        audio_mutex_destroy(stream->lock);
+    if (stream->read_sem)
+        audio_semaphore_destroy(stream->read_sem);
+    if (stream->write_sem)
+        audio_semaphore_destroy(stream->write_sem);
+    audio_free(stream);
+
+    return NULL;
 }
 
 int audio_stream_start(struct audio_player_stream *self)
