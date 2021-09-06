@@ -7,8 +7,6 @@
 #include "AudioConfig.h"
 #include "filters/SRCFilters.h"
 
-static int numtaps_2ch = 13;
-
 /*****************************************************************************
  *
  * SRCInit initializes the persistent state of the sample rate converter.  It
@@ -20,14 +18,13 @@ static int numtaps_2ch = 13;
  * unused).
  *
  *****************************************************************************/
-short lastSampleLeft = 0, lastSampleRight = 0;
 int SRCInit(SRCState *pSRC, unsigned long ulInputRate, unsigned long ulOutputRate)
 {
     long lNumPolyPhases, lSampleIncrement, lNumTaps;
     short sTap;
 
-    lastSampleLeft = 0;
-    lastSampleRight = 0;
+    pSRC->lastSampleLeft = 0;
+    pSRC->lastSampleRight = 0;
     pSRC->last_sample_num = 0;
     pSRC->process_num = 160;
 
@@ -221,8 +218,9 @@ int SRCInit(SRCState *pSRC, unsigned long ulInputRate, unsigned long ulOutputRat
         return (0);
     }
     }
-    RK_AUDIO_LOG_D("SRCInit:%d, NUMTAPS:%d ", __LINE__, numtaps_2ch);
-    memset((void *)pSRC->Left_right, 0, numtaps_2ch * 4);
+    pSRC->numtaps = lNumTaps;
+    RK_AUDIO_LOG_D("SRCInit:%d, NUMTAPS:%d ", __LINE__, pSRC->numtaps);
+    memset((void *)pSRC->Left_right, 0, sizeof(pSRC->Left_right));
     RK_AUDIO_LOG_D("0x%x", (int)((ulOutputRate << 16) / ulInputRate));
     RK_AUDIO_LOG_D("ulOutputRate:%ld,ulInputRate:%ld", ulOutputRate, ulInputRate);
 
@@ -230,8 +228,7 @@ int SRCInit(SRCState *pSRC, unsigned long ulInputRate, unsigned long ulOutputRat
     // Make sure that the number of taps in the filter matches the number of
     // taps supported by our filtering code.
     //
-    numtaps_2ch = lNumTaps;
-    if (lNumTaps != numtaps_2ch)
+    if (lNumTaps != pSRC->numtaps)
     {
         RK_AUDIO_LOG_D("SRCInit :%d", __LINE__);
         return (0);
@@ -242,13 +239,13 @@ int SRCInit(SRCState *pSRC, unsigned long ulInputRate, unsigned long ulOutputRat
     //
     RK_AUDIO_LOG_D("SRCInit :%d", __LINE__);
     pSRC->lFilterOffset = 0;
-    pSRC->lFilterIncr = lSampleIncrement * numtaps_2ch;//eg:48k->44k,25*13
-    pSRC->lFilterSize = lNumPolyPhases * numtaps_2ch;//23*13
+    pSRC->lFilterIncr = lSampleIncrement * pSRC->numtaps;//eg:48k->44k,25*13
+    pSRC->lFilterSize = lNumPolyPhases * pSRC->numtaps;//23*13
 
     //
     // Set the initial state of the delay lines to silence.
     //
-    for (sTap = 0; sTap < numtaps_2ch; sTap++)
+    for (sTap = 0; sTap < pSRC->numtaps; sTap++)
     {
         pSRC->Left_right[2 * sTap] = 0;
         pSRC->Left_right[2 * sTap + 1] = 0;
@@ -280,8 +277,8 @@ void SRCFilterStereo(SRCState *pSRC, short *psInDataLeft, short *psInDataRight,
     int iLoop;
     int i;
     int count = 0;
-    //RK_AUDIO_LOG_D("%d SRCFilterStereo, NUMTAPS:%d",__LINE__,numtaps_2ch);
-    memcpy(psInDataLeft - (numtaps_2ch << 1), pSRC->Left_right, (numtaps_2ch << 2));
+    //RK_AUDIO_LOG_D("%d SRCFilterStereo, NUMTAPS:%d",__LINE__,pSRC->numtaps);
+    memcpy(psInDataLeft - (pSRC->numtaps << 1), pSRC->Left_right, (pSRC->numtaps << 2));
 #if 1
 #if 1
     i = 1;
@@ -290,13 +287,13 @@ void SRCFilterStereo(SRCState *pSRC, short *psInDataLeft, short *psInDataRight,
         psSampleLeft = psInDataLeft - 2 * i;
         psSampleRight = psInDataRight - 2 * i;
         i++;
-        if ((*psSampleLeft == lastSampleLeft) && (*psSampleRight == lastSampleRight))
+        if ((*psSampleLeft == pSRC->lastSampleLeft) && (*psSampleRight == pSRC->lastSampleRight))
         {
             break;
         }
 
     }
-    //RK_AUDIO_LOG_D("%d SRCFilterStereo, NUMTAPS:%d",__LINE__,numtaps_2ch);
+    //RK_AUDIO_LOG_D("%d SRCFilterStereo, NUMTAPS:%d",__LINE__,pSRC->numtaps);
 #endif
 
     //
@@ -311,7 +308,7 @@ void SRCFilterStereo(SRCState *pSRC, short *psInDataLeft, short *psInDataRight,
 
     // Loop through each output sample.
     //
-    //RK_AUDIO_LOG_D("%d SRCFilterStereo, NUMTAPS:%d",__LINE__,numtaps_2ch);
+    //RK_AUDIO_LOG_D("%d SRCFilterStereo, NUMTAPS:%d",__LINE__,pSRC->numtaps);
     while (iLoop--)
     {
         //
@@ -361,12 +358,12 @@ void SRCFilterStereo(SRCState *pSRC, short *psInDataLeft, short *psInDataRight,
         lOutDataRight = 0;
         sCoeff = *psPtr1++;
         i = 0;
-        while (i < numtaps_2ch)
+        while (i < pSRC->numtaps)
         {
 
             lOutDataLeft += sCoeff * *psPtr2;
             lOutDataRight += sCoeff * *psPtr3;
-            if (i != (numtaps_2ch - 1))
+            if (i != (pSRC->numtaps - 1))
             {
                 sCoeff = *psPtr1++;
                 psPtr2 -= 2;
@@ -398,7 +395,7 @@ void SRCFilterStereo(SRCState *pSRC, short *psInDataLeft, short *psInDataRight,
         *psOutDataRight = (short)(lOutDataRight >> 15);
         psOutDataRight += 2;
     }
-    //RK_AUDIO_LOG_D("%d SRCFilterStereo, NUMTAPS:%d",__LINE__,numtaps_2ch);
+    //RK_AUDIO_LOG_D("%d SRCFilterStereo, NUMTAPS:%d",__LINE__,pSRC->numtaps);
     //RK_AUDIO_LOG_D("SRCFilterStereo:%d",__LINE__);
     //pSRC->lFilterOffset = 0;//cdd 20161012
 
@@ -407,9 +404,9 @@ void SRCFilterStereo(SRCState *pSRC, short *psInDataLeft, short *psInDataRight,
     // of samples.
     //
     //if (pSRC->lFilterOffset   == 286)
-    lastSampleLeft = *psSampleLeft;
-    lastSampleRight = *psSampleRight;
-    memcpy(pSRC->Left_right, psInDataLeft + (lNumInputSamples << 1) - (numtaps_2ch << 1), (numtaps_2ch << 2));
+    pSRC->lastSampleLeft = *psSampleLeft;
+    pSRC->lastSampleRight = *psSampleRight;
+    memcpy(pSRC->Left_right, psInDataLeft + (lNumInputSamples << 1) - (pSRC->numtaps << 1), (pSRC->numtaps << 2));
     //RK_AUDIO_LOG_D("SRCFilterStereo:%d",__LINE__);
 #endif
 }
