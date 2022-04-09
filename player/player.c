@@ -94,6 +94,26 @@ int player_register_apedec(void)
 #endif
 }
 
+int player_register_diffdec(void)
+{
+#ifdef AUDIO_DECODER_DIFF
+    play_decoder_t diff_decoder = DEFAULT_DIFF_DECODER;
+    return player_register_decoder("diff", &diff_decoder);
+#else
+    return 0;
+#endif
+}
+
+int player_register_dsfdec(void)
+{
+#ifdef AUDIO_DECODER_DSF
+    play_decoder_t dsf_decoder = DEFAULT_DSF_DECODER;
+    return player_register_decoder("dsf", &dsf_decoder);
+#else
+    return 0;
+#endif
+}
+
 int player_list_decoder(void)
 {
     if (g_default_decoder == NULL)
