@@ -1084,7 +1084,7 @@ player_handle_t player_create(player_cfg_t *cfg)
     RK_AUDIO_LOG_D("in");
     if (player)
     {
-        memset((void *)player, 0x0, sizeof(player_handle_t));
+        memset((void *)player, 0x0, sizeof(*player));
         player->preprocess_queue = audio_queue_create(1, sizeof(media_sdk_msg_t));
         player->decode_queue = audio_queue_create(1, sizeof(media_sdk_msg_t));
         player->play_queue = audio_queue_create(1, sizeof(media_sdk_msg_t));
@@ -1099,7 +1099,7 @@ player_handle_t player_create(player_cfg_t *cfg)
         player->userdata = cfg->userdata;
         player->name = cfg->name;
         player->device = cfg->device;
-        player->resample_rate = cfg->resample_rate ? cfg->resample_rate : 48000;
+        player->resample_rate = cfg->resample_rate ? ((cfg->resample_rate == -1) ? 0 : cfg->resample_rate) : 48000;
         player->diff_out = cfg->diff_out == 1 ? 1 : 0;
         player->out_ch = cfg->out_ch == 1 ? 1 : (player->diff_out == 1 ? 1 : 2);
         player->state = PLAYER_STATE_IDLE;
