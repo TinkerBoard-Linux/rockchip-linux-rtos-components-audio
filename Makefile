@@ -26,6 +26,7 @@ INCLUDE_PATHS += -I"$(AUDIO_SERVER_PATH)/common" \
 
 include ./codec/codec.mk
 
+DIRS_IGNORE += ./third-part%
 DIRS_ALL := $(shell find . -type d)
 DIRS := $(filter-out $(DIRS_IGNORE),$(DIRS_ALL))
 

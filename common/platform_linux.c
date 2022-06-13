@@ -289,7 +289,8 @@ int audio_fclose(int fd)
 int audio_fsync(int fd)
 {
     FILE *fp = (FILE *)fd;
-    return fsync(fp->_fileno);
+    //return fsync(fp->_fileno);
+    return 0;
 }
 
 uint32_t audio_fstat(char *file_path, int stream)

@@ -16,6 +16,8 @@ set(RKAUDIO_COMMON_SOURCE common/id3v2.c
 
 include_directories(./)
 include_directories(./common)
+include_directories(third-party/prebuilt/headers/alsa-lib/include)
+
 
 if(RKAUDIO_RECORDER)
 ADD_DEFINITIONS( -DAUDIO_ENABLE_RECORDER)
@@ -57,16 +59,24 @@ if(RKAUDIO_ENDECODE)
 endif()
 
 ADD_LIBRARY (rkaudio SHARED ${RKAUDIO_SOURCE_FILE})
-SET_TARGET_PROPERTIES (rkaudio PROPERTIES VERSION 1.0 SOVERSION 0)
 link_libraries(rkaudio)
 link_directories(${PROJECT_BINARY_DIR}/lib/)
 
-install(TARGETS ${LIBRARY_NAME}
-        LIBRARY DESTINATION "lib"
-        PUBLIC_HEADER DESTINATION "audio_server.h")
+ADD_LIBRARY (rkaudio_static STATIC ${RKAUDIO_SOURCE_FILE})
+link_libraries(rkaudio_static)
+link_directories(${PROJECT_BINARY_DIR}/lib/)
+
+install(TARGETS rkaudio
+        LIBRARY DESTINATION "lib")
+
+install(TARGETS rkaudio_static
+        LIBRARY DESTINATION "lib")
+
+set(RKAUDIO_HEADER
+      ${CMAKE_CURRENT_SOURCE_DIR}/audio_server.h
+)
+install(FILES ${RKAUDIO_HEADER} DESTINATION include/)
 
 if(RKAUDIO_TEST_DEMO)
-    ADD_EXECUTABLE(rkaudio_play example/rkaudio_play.c)
-    target_link_libraries(rkaudio_play librkaudio.so)
-    target_link_libraries(rkaudio_play pthread)
+add_subdirectory(example)
 endif()
