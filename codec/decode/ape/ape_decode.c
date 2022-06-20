@@ -22,11 +22,13 @@
 #include "drv_dsp.h"
 static struct rt_device *g_dsp_handle;
 static struct dsp_work *g_dsp_work;
+extern void *get_dsp_fw_by_id(int id);
 int32_t ape_dec_init(APEDec **dec)
 {
     int ret;
 
     g_dsp_handle = rt_device_find("dsp0");
+    rt_device_control(g_dsp_handle, RKDSP_CTL_PREPARE_IMAGE_DATA, (void *)get_dsp_fw_by_id(0));
     ret = rt_device_open(g_dsp_handle, RT_DEVICE_OFLAG_RDWR);
     RT_ASSERT(ret == RT_EOK);
 
@@ -89,9 +91,18 @@ int32_t ape_dec_deinit(APEDec *dec)
 
 #else
 
-int32_t ape_dec_init(APEDec **dec){return -1;}
-int32_t ape_dec_process(APEDec *dec){return -1;}
-int32_t ape_dec_deinit(APEDec *dec){return -1;}
+int32_t ape_dec_init(APEDec **dec)
+{
+    return -1;
+}
+int32_t ape_dec_process(APEDec *dec)
+{
+    return -1;
+}
+int32_t ape_dec_deinit(APEDec *dec)
+{
+    return -1;
+}
 
 #endif  // __RT_THREAD__
 #endif  // RT_USING_EXT_FLAC_DECODER
