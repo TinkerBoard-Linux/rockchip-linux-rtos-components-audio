@@ -59,6 +59,16 @@ int recorder_init(void)
     return RK_AUDIO_SUCCESS;
 }
 
+int recorder_register_mp3enc(void)
+{
+#ifdef AUDIO_ENCODER_MP3
+    record_encoder_t mp3_encoder = DEFAULT_MP3_ENCODER;
+    return recorder_register_encoder("mp3", &mp3_encoder);
+#else
+    return RK_AUDIO_FAILURE;
+#endif
+}
+
 int recorder_register_amrenc(void)
 {
     record_encoder_t amr_encoder = DEFAULT_AMR_ENCODER;
@@ -217,7 +227,7 @@ void write_run(void *data)
         processor_cfg.tag = recorder->tag;
         /* This is to handle with the case of slow flash writing */
         if ((strncmp(processor_cfg.target, "A:", 2) == 0)
-            || (strncmp(processor_cfg.target, "a:", 2) == 0))
+                || (strncmp(processor_cfg.target, "a:", 2) == 0))
         {
             RK_AUDIO_LOG_V("record save to flash");
             save_to_flash = 1;
@@ -337,6 +347,7 @@ void write_run(void *data)
                 {
                     if (writer.write(&writer, last_buf, frame_size) == RK_AUDIO_FAILURE)
                     {
+                        RK_AUDIO_LOG_E("writer write error");
                         audio_stream_stop(recorder->record_stream);
                         audio_stream_stop(recorder->encode_stream);
                         info = RECORD_INFO_WRITER;
@@ -577,6 +588,7 @@ void capture_run(void *data)
                 read_size = device.read(&device, read_buf, frame_size);
                 if (read_size == -1)
                 {
+                    RK_AUDIO_LOG_E("device read error");
                     audio_stream_stop(recorder->record_stream);
                     break;
                 }
@@ -647,18 +659,18 @@ recorder_handle_t recorder_create(recorder_cfg_t *cfg)
             .args = recorder
         };
         recorder->write_task = audio_thread_create("write_task",
-                                                   recordr_stack_size,
-                                                   RECORDER_TASK_PRIORITY, &c);
+                               recordr_stack_size,
+                               RECORDER_TASK_PRIORITY, &c);
         c.run = encoder_run;
         c.args = recorder;
         recorder->encode_task = audio_thread_create("encode_task",
-                                                    encoder_stack_size,
-                                                    RECORDER_TASK_PRIORITY, &c);
+                                encoder_stack_size,
+                                RECORDER_TASK_PRIORITY, &c);
         c.run = capture_run;
         c.args = recorder;
         recorder->record_task = audio_thread_create("record_task",
-                                                    writer_stack_size,
-                                                    RECORDER_TASK_PRIORITY, &c);
+                                writer_stack_size,
+                                RECORDER_TASK_PRIORITY, &c);
         RK_AUDIO_LOG_V("Success %s 0x%lx 0x%lx 0x%lx",
                        recorder->device_name,
                        recordr_stack_size,

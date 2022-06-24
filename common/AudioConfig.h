@@ -121,6 +121,9 @@ typedef void *HDC;
 #ifdef AUDIO_DECODER_DSF
 #include "play_dsf.h"
 #endif
+#ifdef AUDIO_ENCODER_MP3
+#include "record_mp3.h"
+#endif
 #include "record_amr.h"
 #include "record_pcm.h"
 #include "record_wav.h"
