@@ -15,6 +15,7 @@ include $(ROOT_PATH)/gcc.mk
 LIBS := libaudio.a
 LIBS_RELEASE := libaudio_release.a
 DIRS_IGNORE := ./plugins/effect%
+DIRS_IGNORE += ./plugins/soundtouch%
 DIRS_IGNORE += ./codec%
 AUDIO_SERVER_PATH := $(shell pwd)
 INCLUDE_PATHS += -I"$(AUDIO_SERVER_PATH)/common" \
