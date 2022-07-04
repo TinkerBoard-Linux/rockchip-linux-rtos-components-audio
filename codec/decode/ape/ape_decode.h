@@ -17,7 +17,7 @@
 
 #ifdef AUDIO_DECODER_APE
 
-#define APE_BUFFER_IN               4096
+#define APE_BUFFER_IN               (4096 * 2)
 
 int32_t ape_dec_init(APEDec **dec);
 int32_t ape_dec_process(APEDec *dec);

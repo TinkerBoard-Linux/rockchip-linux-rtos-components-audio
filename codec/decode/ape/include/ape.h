@@ -15,16 +15,12 @@ typedef unsigned long u32;
 
 #define FFALIGN(x, a)     (((x) + (a) - 1) & ~((a) - 1))
 
-// #define INT_MAX       2147483647    /* maximum (signed) int value */
+#define INT_MAX       2147483647    /* maximum (signed) int value */
 
 #define av_log(a0,a1,a2,a3,a4,a5,a6,a7,a8,a9)
 #define UINT_MAX  (1800*36)
 
 #include "hifi_ape_bitstream.h"
-
-#ifdef CONFIG_TRACE_ENABLE
-#include "trace.h"
-#endif
 
 #define BLOCKS_PER_LOOP     2048
 //#define BLOCKS_PER_LOOP     4096
@@ -177,6 +173,8 @@ struct APEDecIn
             uint32_t file_tell;
         } buf;
     };
+    int (*cb)(void *param);
+    void *cb_param;
     uint32_t read_bytes;
 };
 

@@ -13,7 +13,7 @@
 
 #ifdef AUDIO_DECODER_APE
 
-#ifdef __RT_THREAD__
+#if 0//def __RT_THREAD__
 
 #define DSP_CODEC_APE_DECODE_OPEN       0x5000000C
 #define DSP_CODEC_APE_DECODE_PROCESS    0x5000000D
@@ -93,15 +93,34 @@ int32_t ape_dec_deinit(APEDec *dec)
 
 int32_t ape_dec_init(APEDec **dec)
 {
-    return -1;
+    APEDec *decoder;
+
+    init_ape(&decoder);
+    decoder->out_buf = (uint8_t *)audio_malloc(BLOCKS_PER_LOOP * 2 * sizeof(short));
+
+    *dec = decoder;
+
+    return RK_AUDIO_SUCCESS;
 }
 int32_t ape_dec_process(APEDec *dec)
 {
-    return -1;
+    ape_frame_prepare(dec);
+    ape_decode(dec);
+
+    /* Decode finish check */
+    if (dec->apeobj->TimePos == dec->apeobj->total_blocks)
+        return -2;
+    if (dec->apeobj->TimePos > dec->apeobj->total_blocks)
+        return -1;
+
+    return RK_AUDIO_SUCCESS;
 }
 int32_t ape_dec_deinit(APEDec *dec)
 {
-    return -1;
+    audio_free(dec->out_buf);
+    ape_free(dec);
+
+    return RK_AUDIO_SUCCESS;
 }
 
 #endif  // __RT_THREAD__

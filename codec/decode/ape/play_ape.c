@@ -9,10 +9,13 @@
  *
  */
 
+#include "AudioConfig.h"
 #include "play_ape.h"
 #include "ape_tag.h"
 
 #ifdef AUDIO_DECODER_APE
+
+static int play_ape_fill_buffer(void *arg);
 
 int play_ape_check_impl(char *buf, int len)
 {
@@ -56,7 +59,10 @@ int play_ape_init_impl(struct play_decoder *self, play_decoder_cfg_t *cfg)
 
     ape->dec->in.buf.buf_in_size = APE_BUFFER_IN;
     ape->dec->in.buf.buf_in = rkdsp_malloc(ape->dec->in.buf.buf_in_size);
+    memset(ape->dec->in.buf.buf_in, 0, ape->dec->in.buf.buf_in_size);
     ape->dec->apeobj->file_size = ape->dec->in.buf.file_size = player_get_file_length(ape->userdata);
+    ape->dec->in.cb = play_ape_fill_buffer;
+    ape->dec->in.cb_param = ape;
 
     RK_AUDIO_LOG_V("init success");
     ape->dec->in.buf.buf_in_left = 0;
@@ -74,17 +80,54 @@ int play_ape_post(struct play_ape *ape)
     return RT_EOK;
 }
 
+static int play_ape_fill_buffer(void *arg)
+{
+    struct play_ape *ape = (struct play_ape *)arg;
+    APEDec *dec = ape->dec;
+    uint32_t read_bytes;
+    if (dec->in.buf.buf_in_left)
+    {
+        if (dec->in.buf.buf_in_left > (APE_BUFFER_IN / 2))
+        {
+            RK_AUDIO_LOG_E("error left %ld", dec->in.buf.buf_in_left);
+            return -1;
+        }
+        memcpy(dec->in.buf.buf_in, dec->in.buf.buf_in + APE_BUFFER_IN / 2 - dec->in.buf.buf_in_left, APE_BUFFER_IN / 2 + dec->in.buf.buf_in_left);
+        read_bytes = ape->input(ape->userdata, (char *)(dec->in.buf.buf_in + APE_BUFFER_IN / 2 + dec->in.buf.buf_in_left),
+                                APE_BUFFER_IN / 2 - dec->in.buf.buf_in_left);
+        if (read_bytes <= 0)
+            return read_bytes;
+//            read_bytes = dec->in.buf.buf_in_left;
+
+        read_bytes += dec->in.buf.buf_in_left;
+    }
+    else
+    {
+        memcpy(dec->in.buf.buf_in, dec->in.buf.buf_in + APE_BUFFER_IN / 2, APE_BUFFER_IN / 2);
+        read_bytes = ape->input(ape->userdata, (char *)dec->in.buf.buf_in + APE_BUFFER_IN / 2,
+                                APE_BUFFER_IN / 2);
+        if (read_bytes <= 0)
+            return read_bytes;
+    }
+    dec->in.buf.buf_in_size = APE_BUFFER_IN / 2 + read_bytes;
+    dec->in.buf.buf_in_left = read_bytes;
+    dec->in.read_bytes = 0;
+
+    return read_bytes;
+}
+
 play_decoder_error_t play_ape_process_impl(struct play_decoder *self)
 {
     struct play_ape *ape = (struct play_ape *) self->userdata;
     APEDec *dec = ape->dec;
-    uint32_t read_bytes;
+    int read_bytes;
     uint32_t write_bytes;
     int finish = 0;
     char buf[10];
     int ret;
     int err = PLAY_DECODER_SUCCESS;
 
+    dec->ID3_len = 0;
     read_bytes = ape->input(ape->userdata, buf, 10);
     if (read_bytes <= 0)
         return PLAY_DECODER_INPUT_ERROR;
@@ -110,36 +153,19 @@ play_decoder_error_t play_ape_process_impl(struct play_decoder *self)
 
     while (finish == 0)
     {
-        if (dec->in.buf.buf_in_left)
+        read_bytes = play_ape_fill_buffer(ape);
+        if (read_bytes == -1)
         {
-            memcpy(dec->in.buf.buf_in, dec->in.buf.buf_in + APE_BUFFER_IN / 2 - dec->in.buf.buf_in_left, APE_BUFFER_IN / 2 + dec->in.buf.buf_in_left);
-            read_bytes = ape->input(ape->userdata, (char *)(dec->in.buf.buf_in + APE_BUFFER_IN / 2 + dec->in.buf.buf_in_left),
-                                    APE_BUFFER_IN / 2 - dec->in.buf.buf_in_left);
-            if (read_bytes <= 0)
-                read_bytes = dec->in.buf.buf_in_left;
-            else
-                read_bytes += dec->in.buf.buf_in_left;
+            err = PLAY_DECODER_INPUT_ERROR;
+            break;
         }
-        else
+        if (read_bytes == 0)
         {
-            memcpy(dec->in.buf.buf_in, dec->in.buf.buf_in + APE_BUFFER_IN / 2, APE_BUFFER_IN / 2);
-            read_bytes = ape->input(ape->userdata, (char *)dec->in.buf.buf_in + APE_BUFFER_IN / 2,
-                                    APE_BUFFER_IN / 2);
-            if (read_bytes == -1)
-            {
-                err = PLAY_DECODER_INPUT_ERROR;
-                break;
-            }
-            if (read_bytes == 0)
-            {
-                err = PLAY_DECODER_SUCCESS;
-                break;
-            }
+            err = PLAY_DECODER_SUCCESS;
+            break;
         }
-        dec->in.buf.buf_in_size = APE_BUFFER_IN / 2 + read_bytes;
-        dec->in.buf.buf_in_left = read_bytes;
+
         dec->out_len = 0;
-        dec->in.read_bytes = 0;
         ret = ape_dec_process(dec);
         if (ret < 0)
         {
