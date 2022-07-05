@@ -4,7 +4,8 @@ import os
 from building import *
 
 cwd = GetCurrentDir()
-src = Glob('*.c')
+#src = Glob('dsd2pcm_conv.c') + Glob('common.c');
+src = Glob('hifi_dsd2pcm_conv.c') + Glob('common.c');
 
 CPPPATH = [cwd]
 

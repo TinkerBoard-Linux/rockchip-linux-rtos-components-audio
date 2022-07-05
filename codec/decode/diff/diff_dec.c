@@ -126,7 +126,8 @@ int diff_open(struct diff *diff)
             eos = 1;
             break;
         }
-    } while (eos == 0);
+    }
+    while (eos == 0);
 
     resize_dsd_buf(&ck_data, 0);
 
@@ -136,15 +137,15 @@ int diff_open(struct diff *diff)
     {
     case 2822400:
         diff->type = DSD64;
-        diff->out_rate = 176400;
+        diff->out_rate = 44100;
         break;
     case 5644800:
         diff->type = DSD128;
-        diff->out_rate = 176400;
+        diff->out_rate = 88200;
         break;
     case 11289600:
         diff->type = DSD256;
-        diff->out_rate = 88200;
+        diff->out_rate = 44100;
         break;
     default:
         diff->type = DSD64;
@@ -157,7 +158,9 @@ int diff_open(struct diff *diff)
 
 int diff_process(struct diff *diff)
 {
-    void* dsd2pcm;
+    void *dsd2pcm;
+    uint8_t *out_src;
+    uint8_t *in_src;
     uint8_t *out;
     uint8_t *in;
     uint32_t out_size;
@@ -171,18 +174,20 @@ int diff_process(struct diff *diff)
     }
     frame_size = diff->frame_size;
     out_size = frame_size / (diff->sample_rate / diff->out_rate >> 3) * sizeof(uint32_t);
-    out = audio_malloc(out_size);
-    if (!out)
+    out_src = audio_malloc(RK_AUDIO_ALIGN(out_size, 128) + 128);
+    if (!out_src)
     {
         RK_AUDIO_LOG_E("malloc %ld failed", out_size);
         goto out_err;
     }
-    in = audio_malloc(frame_size);
-    if (!in)
+    out = (uint8_t *)RK_AUDIO_ALIGN((uint32_t)out_src, 128);
+    in_src = audio_malloc(RK_AUDIO_ALIGN(frame_size, 128) + 128);
+    if (!in_src)
     {
         RK_AUDIO_LOG_E("malloc %ld failed", frame_size);
         goto in_err;
     }
+    in = (uint8_t *)RK_AUDIO_ALIGN((uint32_t)in_src, 128);
     dsd2pcm = dsd2pcm_converter_init(diff->type, diff->channels, diff->sample_rate, diff->out_rate);
     if (!dsd2pcm)
     {
@@ -203,9 +208,9 @@ int diff_process(struct diff *diff)
         }
 
         /* dsd to pcm */
-        int len = dsd2pcm_converter_convert(dsd2pcm, in, frame_size, out, 32, 0);
+        int len = dsd2pcm_converter_convert(dsd2pcm, in, frame_size, out, out_size, 0);
         write_ret = diff->write(diff, (char *)out, len * sizeof(uint32_t));
-        if (write_ret != len * sizeof(uint32_t))
+        if (write_ret < 0)
         {
             ret = RK_AUDIO_FAILURE;
             break;
@@ -213,9 +218,9 @@ int diff_process(struct diff *diff)
     }
     dsd2pcm_converter_deinit(dsd2pcm);
 dsd_err:
-    audio_free(in);
+    audio_free(in_src);
 in_err:
-    audio_free(out);
+    audio_free(out_src);
 out_err:
 
     return ret;
