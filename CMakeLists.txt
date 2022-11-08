@@ -5,7 +5,8 @@ ADD_DEFINITIONS( -D__LINUX__)
 
 SET (LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
-set(RKAUDIO_COMMON_SOURCE common/audio_misc.c
+set(RKAUDIO_COMMON_SOURCE common/id3v2.c
+                          common/audio_misc.c
                           common/audio_queue.c
                           common/audio_stream.c
                           common/pcmout.c
