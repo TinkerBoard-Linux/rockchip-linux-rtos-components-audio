@@ -169,9 +169,9 @@ unsigned long audio_device_read(void *dev, char *data, unsigned long frames)
     return 0;
 }
 
-void audio_device_set_vol(void *dev, int vol)
+int audio_device_set_vol(void *dev, int vol)
 {
-
+    return 0;
 }
 
 int audio_device_get_vol(void *dev)
