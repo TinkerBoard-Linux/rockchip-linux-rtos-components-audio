@@ -719,10 +719,13 @@ typedef struct
     int lFilterSize;
     //BufferState sInputBuffer;
     //short Left_right[NUMTAPS*2];
-    int Left_right[51 * 2];
+    int Left_right[64 * 2];
     int Last_sample[180 * 2];
     int last_sample_num;
     int process_num;
+    short numtaps;
+    short lastSampleLeft;
+    short lastSampleRight;
 } SRCState;
 
 long resample_48to16_4ch_init(SRCState_4ch *pSRC, unsigned long ulInputRate,
