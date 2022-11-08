@@ -7,10 +7,10 @@
 
 struct audio_player_stream *audio_stream_create(size_t size)
 {
-    struct audio_player_stream *stream = (struct audio_player_stream *) audio_calloc(1, sizeof(struct audio_stream));
+    struct audio_player_stream *stream = (struct audio_player_stream *) audio_calloc(1, sizeof(struct audio_player_stream));
     if (stream)
     {
-        memset(stream, 0x0, sizeof(struct audio_stream));
+        memset(stream, 0x0, sizeof(struct audio_player_stream));
         stream->buf_size = size;
         stream->buf = (char *)audio_calloc(1, size);
         if (stream->buf == NULL)
