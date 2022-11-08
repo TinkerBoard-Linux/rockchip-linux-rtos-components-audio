@@ -22,6 +22,7 @@ static inline uint32_t _get_le32(char *buf)
     return ((buf[3] << 24) + (buf[2] << 16) + (buf[1] << 8) + buf[0]);
 }
 
+static int ape_in = 0;
 int ape_input(APEDec *dec, struct play_ape *ape, char *buf, int len)
 {
     int ret;
@@ -29,6 +30,8 @@ int ape_input(APEDec *dec, struct play_ape *ape, char *buf, int len)
     ret = ape->input(ape->userdata, buf, len);
     if (ret > 0)
         dec->in.buf.file_tell += ret;
+
+    ape_in += ret;
 
     return ret;
 }
@@ -227,17 +230,17 @@ int ape_read_header(APEDec *dec, struct play_ape *ape)
     apec->file_time = (uint32_t)(((double)(apec->total_blocks) * (double)(1000)) / (double)(apec->samplerate));
     apec->bitrate = (uint32_t)(((long long)(apec->file_size - dec->ID3_len) * 8000) / (double)(apec->file_time));
     RK_AUDIO_LOG_V("APE version %d "
-                   "compression %d\n",
+                   "compression %d",
                    apec->fileversion, apec->compressiontype);
-    // RK_AUDIO_LOG_V("totalframes %d "
-    //                "blocksperframe %d "
-    //                "file_size %d "
-    //                "file_time %d\n",
-    //                apec->totalframes, apec->blocksperframe, apec->file_size, apec->file_time);
+//    RK_AUDIO_LOG_V("totalframes %ld "
+//                   "blocksperframe %ld "
+//                   "file_size %ld "
+//                   "file_time %ld",
+//                   apec->totalframes, apec->blocksperframe, apec->file_size, apec->file_time);
     RK_AUDIO_LOG_V("samplerate %ld "
                    "bps %d "
                    "channels %d "
-                   "bitrate %ld\n",
+                   "bitrate %ld",
                    apec->samplerate, apec->bps, apec->channels, apec->bitrate);
 
     if (apec->totalframes > (UINT_MAX / 36))
@@ -314,6 +317,8 @@ int ape_read_header(APEDec *dec, struct play_ape *ape)
     //     }
     //     apec->frames[i].size = (apec->frames[i].size + 3) & ~3;
     // }
+
+    printf("ape in %d\n", ape_in);
 
     return 1;
 }
