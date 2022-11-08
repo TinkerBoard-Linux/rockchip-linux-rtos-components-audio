@@ -6,6 +6,13 @@
 
 #include "AudioConfig.h"
 
+#ifdef AUDIO_PLUGIN_SOUNDTOUCH
+#include "SoundTouch.h"
+#define AUDIO_FORCE_16BITS      1
+#else
+#define AUDIO_FORCE_16BITS      0
+#endif
+
 #ifdef AUDIO_ENABLE_PLAYER
 #define PLAYBACK_FRAMESIZE      (4096)  /* bytes */
 #define DEVICE_IDLE_TIMEOUT     (2)     /* seconds */
@@ -54,6 +61,16 @@ struct player
     uint32_t cur_time;
     uint32_t total_time;
     uint32_t total_length;
+
+#ifdef AUDIO_PLUGIN_SOUNDTOUCH
+    SoundTouch *pST;
+    int speed;
+    int st_en;
+#endif
+
+#if AUDIO_FORCE_16BITS
+    int post_bits;
+#endif
 
     int resample_rate;
     int playback;
@@ -451,6 +468,39 @@ int player_audio_resample(player_handle_t player, char *data, size_t data_len)
     return ret;
 }
 
+#if AUDIO_FORCE_16BITS
+static int player_audio_xto16(int bits, char *data, size_t data_len)
+{
+    int start_bytes = 2;
+    int in_step = 4;
+    int out_len = data_len;
+
+    if (bits == 16)
+        return data_len;
+
+    if (bits == 32)
+    {
+        in_step = 4;
+        out_len = data_len / 2;
+        start_bytes = 2;
+    }
+    else if (bits == 24)
+    {
+        in_step = 3;
+        out_len = data_len * 2 / 3;
+        start_bytes = 1;
+    }
+
+    for (int i = start_bytes, j = 0; i < data_len; i += in_step, j += 2)
+    {
+        data[j] = data[i];
+        data[j + 1] = data[i + 1];
+    }
+
+    return out_len;
+}
+#endif
+
 int decoder_output(void *userdata, char *data, size_t data_len)
 {
     player_handle_t player = (player_handle_t) userdata;
@@ -460,10 +510,11 @@ int decoder_output(void *userdata, char *data, size_t data_len)
     float data_l;
     float data_r;
     float data_mix;
+    int ret_len = data_len;
     int frame_bytes = player->bits / 8;
     int isMono = (player->channels == 1) ? 1 : 0;
     char *data_stero;
-    int ret;
+    int ret = 0;
 
     if (player->playback_start == 0)
     {
@@ -476,6 +527,10 @@ int decoder_output(void *userdata, char *data, size_t data_len)
         player->playback_start = 1;
         RK_AUDIO_LOG_V("Playback run");
     }
+
+#if AUDIO_FORCE_16BITS
+    data_len = player_audio_xto16(player->post_bits, data, data_len);
+#endif
     /* if MONO, copy left channel data stream to right channels. */
     if (isMono)
     {
@@ -530,15 +585,43 @@ int decoder_output(void *userdata, char *data, size_t data_len)
         data_stero = data;
     }
 
-    if (g_is_need_resample)
-        ret = player_audio_resample(player, data_stero, data_len);
+#ifdef AUDIO_PLUGIN_SOUNDTOUCH
+    if (player->st_en && player->speed)
+    {
+        int nSamples;
+        uint32_t putLen = data_len / (player->channels * frame_bytes);
+        SoundTouch_putSamples(player->pST, (SAMPLETYPE *)data_stero, putLen);
+        do
+        {
+            nSamples = SoundTouch_receiveSamples(player->pST, (SAMPLETYPE *)data_stero, putLen);
+            if (!nSamples)
+                break;
+
+            if (g_is_need_resample)
+                ret = player_audio_resample(player, data_stero, nSamples * player->channels * frame_bytes);
+            else
+                ret = audio_stream_write(player->decode_stream, data_stero, nSamples * player->channels * frame_bytes);
+            if (ret <= 0)
+                break;
+        }
+        while (nSamples == putLen);
+    }
     else
-        ret = audio_stream_write(player->decode_stream, data_stero, data_len);
+#endif
+    {
+        if (g_is_need_resample)
+            ret = player_audio_resample(player, data_stero, data_len);
+        else
+            ret = audio_stream_write(player->decode_stream, data_stero, data_len);
+    }
 
     if (isMono)
         audio_free(data_stero);
 
-    return ret;
+    if (ret < 0)
+        return ret;
+
+    return ret_len;
 }
 
 void player_audio_resample_deinit(void)
@@ -586,8 +669,30 @@ int decoder_post(void *userdata, int samplerate, int bits, int channels)
 {
     player_handle_t player = (player_handle_t)userdata;
     player->samplerate = samplerate;
+#if AUDIO_FORCE_16BITS
+    player->bits = 16;
+    player->post_bits = bits;
+#else
     player->bits = bits;
+#endif
     player->channels = channels;
+
+#ifdef AUDIO_PLUGIN_SOUNDTOUCH
+    if (samplerate < 88200)
+    {
+        SoundTouch_setSampleRate(player->pST, samplerate);
+        SoundTouch_setChannels(player->pST, 2/*channels*/);
+        SoundTouch_setTempoChange(player->pST, player->speed);
+        SoundTouch_setRateChange(player->pST, 0);
+        SoundTouch_setPitchSemiTones(player->pST, 0);
+        player->st_en = 1;
+    }
+    else
+    {
+        player->speed = 0;
+        player->st_en = 0;
+    }
+#endif
 
     if (player->resample_rate && samplerate != player->resample_rate)
     {
@@ -923,7 +1028,7 @@ void *playback_run(void *data)
 PLAYBACK_START:
             memset(read_buf, 0, frame_size * 2);
             /* byte2ms = channels * (bits >> 3) * (rate / 1000), channels will always be 2 */
-            byte2ms = 2 * (player->bits >> 3) * player->samplerate / 1000;
+            byte2ms = 2 * (device_cfg.bits >> 3) * player->samplerate / 1000;
             /* If decoder seek not accurate, this may not accurate */
             if (player->start_time)
             {
@@ -1114,6 +1219,15 @@ player_handle_t player_create(player_cfg_t *cfg)
         player->out_ch = cfg->out_ch == 1 ? 1 : (player->diff_out == 1 ? 1 : 2);
         player->state = PLAYER_STATE_IDLE;
 
+#ifdef AUDIO_PLUGIN_SOUNDTOUCH
+        player->speed = 0;
+        player->pST = audio_malloc(sizeof(SoundTouch));
+        SoundTouch_init(player->pST);
+        SoundTouch_setPitchSemiTones(player->pST, 0);
+        SoundTouch_setRateChange(player->pST, 0);
+        SoundTouch_setTempoChange(player->pST, 0);
+#endif
+
         preprocess_stack_size = cfg->preprocess_stack_size ? cfg->preprocess_stack_size : 4096;
         decoder_stack_size = cfg->decoder_stack_size ? cfg->decoder_stack_size : 1024 * 12;
         playback_stack_size = cfg->playback_stack_size ? cfg->playback_stack_size : 2048;
@@ -1152,6 +1266,25 @@ player_handle_t player_create(player_cfg_t *cfg)
     }
 
     return player;
+}
+
+void player_set_speed(player_handle_t self, int speed)
+{
+#ifdef AUDIO_PLUGIN_SOUNDTOUCH
+    if (!self->st_en)
+        return;
+
+    if (speed < -50)
+        speed = -50;
+    else if (speed > 100)
+        speed = 100;
+
+    self->speed = speed;
+
+    SoundTouch_setTempoChange(self->pST, self->speed);
+#else
+    RK_AUDIO_LOG_E("No support set speed");
+#endif
 }
 
 int player_play(player_handle_t self, play_cfg_t *cfg)
