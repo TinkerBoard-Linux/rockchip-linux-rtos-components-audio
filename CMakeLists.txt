@@ -56,6 +56,17 @@ if(RKAUDIO_ENDECODE)
             ${RKAUDIO_SOURCE_FILE}
             ${RKAUDIO_DECODER_MP3_SOURCE})
     endif()
+
+    if(RKAUDIO_ENCODER_MP3)
+        ADD_DEFINITIONS( -DAUDIO_ENCODER_MP3)
+        include_directories(codec/encode/mp3 codec/encode/mp3/source)
+        aux_source_directory(codec/encode/mp3 RKAUDIO_ENCODER_MP3_SOURCE)
+        aux_source_directory(codec/encode/mp3/source RKAUDIO_ENCODER_ORIGINAL_MP3_SOURCE)
+        set(RKAUDIO_SOURCE_FILE
+            ${RKAUDIO_SOURCE_FILE}
+            ${RKAUDIO_ENCODER_MP3_SOURCE}
+            ${RKAUDIO_ENCODER_ORIGINAL_MP3_SOURCE})
+    endif()
 endif()
 
 ADD_LIBRARY (rkaudio SHARED ${RKAUDIO_SOURCE_FILE})
