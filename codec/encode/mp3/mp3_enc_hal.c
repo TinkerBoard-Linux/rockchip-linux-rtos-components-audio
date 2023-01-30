@@ -39,10 +39,17 @@ void *AudioMp3EncodeOpen(struct audio_config *mp3_cfg)
         return NULL;
 
     mp3_enc->enc = Mp3EncodeVariableInit(mp3_cfg->sample_rate, mp3_cfg->channels, SAMPLE_PER_FRAME);
+    if (!mp3_enc->enc)
+    {
+        RK_AUDIO_LOG_E("MP3 encoder create failed");
+        audio_free(mp3_enc);
+        return NULL;
+    }
     mp3_enc->frame_size = mp3_enc->enc->frame_size;
     if (mp3_enc->enc->frame_size <= 0)
     {
         RK_AUDIO_LOG_E("MP3 encoder init failed! r:%d c:%d\n", mp3_cfg->sample_rate, mp3_cfg->channels);
+        audio_free(mp3_enc);
         return NULL;
     }
     RK_AUDIO_LOG_V("MP3 encoder init %pr:%d c:%d s:%d\n", mp3_enc,
@@ -62,7 +69,7 @@ int32_t AudioMp3Encode(mp3_enc_t *mp3_enc)
 int32_t AudioMp3EncodeClose(mp3_enc_t *mp3_enc)
 {
     RK_AUDIO_LOG_V("mp3 encode close, %p %p", mp3_enc, mp3_enc->buffer_out);
-    audio_free(mp3_enc->buffer_in);
+    Mp3EncodeDeinit(mp3_enc->enc);
     audio_free(mp3_enc);
     return 0;
 }

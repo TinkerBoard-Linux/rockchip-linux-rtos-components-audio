@@ -60,6 +60,11 @@ int record_mp3_init(struct record_encoder *self, record_encoder_cfg_t *cfg)
     mp3->userdata = cfg->userdata;
     self->userdata = (void *) mp3;
     mp3->enc = AudioMp3EncodeOpen(mp3_cfg);
+    if (!mp3->enc) {
+        RK_AUDIO_LOG_E("MP3 init FAILED");
+        audio_free(mp3);
+        return -1;
+    }
     RK_AUDIO_LOG_V("MP3 init SUCCESS out");
 
     return 0;

@@ -183,8 +183,14 @@ mp3_enc *Mp3EncodeVariableInit(int samplerate, int channel, int  Bitrate)
     config.mpeg.bitrate_index    = find_bitrate_index(&config, config.mpeg.bitr);
     config.mpeg.cutoff = set_cutoff(&config);
     config.in_buf = malloc(2 * 1152 * sizeof(short));
+    if (!config.in_buf)
+        return NULL;
 
     mp3_enc *mp3 = Mp3EncodeHeaderInit(&config);
+    if (!mp3) {
+        free(config.in_buf);
+        return NULL;
+    }
 
     mp3->frame_size = mp3->config.mpeg.samples_per_frame * mp3->config.mpeg.channels;
 

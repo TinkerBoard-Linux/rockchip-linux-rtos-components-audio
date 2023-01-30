@@ -20,7 +20,6 @@ static long
 *xr,                    /* magnitudes of the spectral values */
 xrabs[samp_per_frame2], /* xr absolute */
 xrmax;                  /* maximum of xrabs array */
-int main_data_begin ;  //for loop.c
 
 /*
  * inner_loop:
@@ -106,8 +105,8 @@ void L3_iteration_loop(long            mdct_freq_org[2][2][samp_per_frame2],
     L3_side_info_t *side_info = &mp3->side_info;
     int             mean_bits = mp3->info.mean_bits;
 
-    reservoir = main_data_begin << 3;  /* calculate reservoir at the frame start */
-    side_info->main_data_begin = main_data_begin; /* set next frames back pointer */
+    reservoir = mp3->main_data_begin << 3;  /* calculate reservoir at the frame start */
+    side_info->main_data_begin = mp3->main_data_begin; /* set next frames back pointer */
 
     for (gr = 0; gr < mp3->config.mpeg.granules; gr++)
         for (ch = mp3->config.mpeg.channels; ch--;)
@@ -164,8 +163,8 @@ void L3_iteration_loop(long            mdct_freq_org[2][2][samp_per_frame2],
         resv_max = mp3->config.mpeg.resv_limit;
     else if (resv_max < 0)
         resv_max = 0;
-    main_data_begin = (reservoir < resv_max) ? (reservoir >> 3) : (resv_max >> 3);
-    extra_bits = reservoir - (main_data_begin << 3);
+    mp3->main_data_begin = (reservoir < resv_max) ? (reservoir >> 3) : (resv_max >> 3);
+    extra_bits = reservoir - (mp3->main_data_begin << 3);
 
     side_info->resv_drain = extra_bits; /* remaining bits to ancillary data */
 
