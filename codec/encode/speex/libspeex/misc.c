@@ -66,7 +66,7 @@ void print_vec(float *vec, int len, char *name)
 #endif
 
 #ifdef FIXED_DEBUG
-long long spx_mips=0;
+int64_t spx_mips=0;
 #endif
 
 #ifndef OVERRIDE_SPEEX_ALLOC

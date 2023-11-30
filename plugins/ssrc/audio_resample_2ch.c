@@ -18,9 +18,9 @@
  * unused).
  *
  *****************************************************************************/
-int SRCInit(SRCState *pSRC, unsigned long ulInputRate, unsigned long ulOutputRate)
+int SRCInit(SRCState *pSRC, uint32_t ulInputRate, uint32_t ulOutputRate)
 {
-    long lNumPolyPhases, lSampleIncrement, lNumTaps;
+    int32_t lNumPolyPhases, lSampleIncrement, lNumTaps;
     short sTap;
 
     pSRC->lastSampleLeft = 0;
@@ -269,9 +269,9 @@ int SRCInit(SRCState *pSRC, unsigned long ulInputRate, unsigned long ulOutputRat
 //****************************************************************************
 void SRCFilterStereo(SRCState *pSRC, short *psInDataLeft, short *psInDataRight,
                      short *psOutDataLeft, short *psOutDataRight,
-                     long lNumInputSamples, long *plNumOutputSamples)
+                     int32_t lNumInputSamples, int32_t *plNumOutputSamples)
 {
-    long lOutDataLeft, lOutDataRight;
+    int32_t lOutDataLeft, lOutDataRight;
     short *psPtr1, *psPtr2, *psPtr3;
     short *psSampleLeft, *psSampleRight, sCoeff;
     int iLoop;
@@ -416,13 +416,13 @@ void SRCFilterStereo(SRCState *pSRC, short *psInDataLeft, short *psInDataRight,
 // SRCFilter runs the sample rate conversion filter over the given streams of
 // samples, thereby performing the sample rate conversion requested
 // by the initial call to SRCInit.
-// long lNumSamples 双声道采样点数
+// int32_t lNumSamples 双声道采样点数
 // psInLeft指向buffer的26的位置
 //****************************************************************************
-long SRCFilter(SRCState *pSRC, short *psInLeft, short *psLeft, long lNumSamples)
+int32_t SRCFilter(SRCState *pSRC, short *psInLeft, short *psLeft, int32_t lNumSamples)
 {
-    long lLength;
-    long lNumOutputSamples;
+    int32_t lLength;
+    int32_t lNumOutputSamples;
 
     lLength = lNumSamples >> 1;
     SRCFilterStereo(pSRC, psInLeft, &psInLeft[1], &psLeft[0], &psLeft[1],

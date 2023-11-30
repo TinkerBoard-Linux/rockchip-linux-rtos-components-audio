@@ -16,7 +16,7 @@ typedef struct http_res_header http_response_header;
 #endif
 
 unsigned char g_is_chunked = 0;
-unsigned long http_totalsize;
+uint32_t http_totalsize;
 #endif
 
 RK_AUDIO_USED static int check_http_audio_type(char *target, char *type)

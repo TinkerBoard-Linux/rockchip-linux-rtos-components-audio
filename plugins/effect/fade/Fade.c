@@ -8,12 +8,12 @@
 
 typedef struct
 {
-    long curWindth;
-    long cur_value;
+    int32_t curWindth;
+    int32_t cur_value;
     int  is_l_finished;
     int  is_r_finished;
     int  is_finished;
-    long is_in_or_out;
+    int32_t is_in_or_out;
     fade_short l_value;
     fade_short r_value;
 
@@ -21,12 +21,12 @@ typedef struct
 
 #if 0
 _ATTR_AUDIO_DATA_ short x_r[2] = {0, 0};
-_ATTR_AUDIO_DATA_ long y_r[2] = {0, 0};
+_ATTR_AUDIO_DATA_ int32_t y_r[2] = {0, 0};
 
 _ATTR_AUDIO_TEXT_
 void filter_2_int_r(short *pwBuffer, unsigned short frameLen)
 {
-    long long y0, y1temp, y2temp;
+    int64_t y0, y1temp, y2temp;
 
     short b0;
     short b1;
@@ -37,8 +37,8 @@ void filter_2_int_r(short *pwBuffer, unsigned short frameLen)
     short x0;
     short x1;
     short x2;
-    long y1;
-    long y2;
+    int32_t y1;
+    int32_t y2;
 
     short i;
 
@@ -59,7 +59,7 @@ void filter_2_int_r(short *pwBuffer, unsigned short frameLen)
     {
         x0 = *pwBuffer;
 
-        y1temp = (long long)a1 * (long long)y1;
+        y1temp = (int64_t)a1 * (int64_t)y1;
         if (y1temp < 0)
         {
             y1temp = -((-y1temp) >> 13);
@@ -71,7 +71,7 @@ void filter_2_int_r(short *pwBuffer, unsigned short frameLen)
 
         }
 
-        y2temp = (long long)a2 * (long long)y2;
+        y2temp = (int64_t)a2 * (int64_t)y2;
         if (y2temp < 0)
         {
             y2temp = -((-y2temp) >> 13);
@@ -83,7 +83,7 @@ void filter_2_int_r(short *pwBuffer, unsigned short frameLen)
 
         }
 
-        y0 = ((long long)b0 * (long long)x0) + ((long long)b1 * (long long)x1) + ((long long)b2 * (long long)x2) + y1temp + y2temp;
+        y0 = ((int64_t)b0 * (int64_t)x0) + ((int64_t)b1 * (int64_t)x1) + ((int64_t)b2 * (int64_t)x2) + y1temp + y2temp;
         y2 = y1;
         y1 = y0;
         if (y0 < 0)
@@ -127,12 +127,12 @@ void filter_2_int_r(short *pwBuffer, unsigned short frameLen)
 
 
 _ATTR_AUDIO_TEXT_ short x_l[2] = {0, 0};
-_ATTR_AUDIO_TEXT_ long y_l[2] = {0, 0};
+_ATTR_AUDIO_TEXT_ int32_t y_l[2] = {0, 0};
 
 _ATTR_AUDIO_TEXT_
 void filter_2_int_l(short *pwBuffer, unsigned short frameLen)
 {
-    long long y0, y1temp, y2temp;
+    int64_t y0, y1temp, y2temp;
 
     short b0;
     short b1;
@@ -143,8 +143,8 @@ void filter_2_int_l(short *pwBuffer, unsigned short frameLen)
     short x0;
     short x1;
     short x2;
-    long y1;
-    long y2;
+    int32_t y1;
+    int32_t y2;
 
     short i;
 
@@ -165,7 +165,7 @@ void filter_2_int_l(short *pwBuffer, unsigned short frameLen)
     {
         x0 = *pwBuffer;
 
-        y1temp = (long long)a1 * (long long)y1;
+        y1temp = (int64_t)a1 * (int64_t)y1;
         if (y1temp < 0)
         {
             y1temp = -((-y1temp) >> 13);
@@ -177,7 +177,7 @@ void filter_2_int_l(short *pwBuffer, unsigned short frameLen)
 
         }
 
-        y2temp = (long long)a2 * (long long)y2;
+        y2temp = (int64_t)a2 * (int64_t)y2;
         if (y2temp < 0)
         {
             y2temp = -((-y2temp) >> 13);
@@ -189,7 +189,7 @@ void filter_2_int_l(short *pwBuffer, unsigned short frameLen)
 
         }
 
-        y0 = ((long long)b0 * (long long)x0) + ((long long)b1 * (long long)x1) + ((long long)b2 * (long long)x2) + y1temp + y2temp;
+        y0 = ((int64_t)b0 * (int64_t)x0) + ((int64_t)b1 * (int64_t)x1) + ((int64_t)b2 * (int64_t)x2) + y1temp + y2temp;
         y2 = y1;
         y1 = y0;
         if (y0 < 0)
@@ -235,9 +235,9 @@ void filter_2_int_l(short *pwBuffer, unsigned short frameLen)
 //extern void filter_2_int_r(short *pwBuffer, unsigned short frameLen);
 
 short x_l[2] = {0, 0};
-long long y_l[2] = {0, 0};
+int64_t y_l[2] = {0, 0};
 short x_r[2] = {0, 0};
-long long y_r[2] = {0, 0};
+int64_t y_r[2] = {0, 0};
 
 #endif
 
@@ -252,7 +252,7 @@ void DC_filter(short *pwBuffer, unsigned short frameLen)
 fade_type   Fade_types;
 //初始化
 //fade: 结构体指针 begin:起始样本编号 len:长度 type: 0-淡入 1-淡出
-void FadeInit(long begin, long len, int type)
+void FadeInit(int32_t begin, int32_t len, int type)
 {
 
     fade_type *fade;
@@ -278,7 +278,7 @@ void FadeInit(long begin, long len, int type)
 }
 
 //产生一个系数(0~65535) 乘法运算后应再右移
-long FadeDoOnce(void)
+int32_t FadeDoOnce(void)
 {
     //fade_type *fade;
 
@@ -411,9 +411,9 @@ void FadeProcess(fade_short *pwBuffer, unsigned short frameLen)
 //           rk_printf("i");
 
         //rk_printf("!!!pwBuffer[2*%d] = 0x%x +1=0x%x  effl=%d inout=%d\n",i, pwBuffer[2*i], pwBuffer[2*i+1],effl,Fade_types.is_in_or_out);
-        pwBuffer[2 * i] = (((fade_long)pwBuffer[2 * i] * effl) >> fade_scale) ; //fade in fade out
+        pwBuffer[2 * i] = (((fade_int32_t)pwBuffer[2 * i] * effl) >> fade_scale) ; //fade in fade out
         Fade_types.l_value = pwBuffer[2 * i];
-        pwBuffer[2 * i + 1] = (((fade_long)pwBuffer[2 * i + 1] * effr) >> fade_scale) ;
+        pwBuffer[2 * i + 1] = (((fade_int32_t)pwBuffer[2 * i + 1] * effr) >> fade_scale) ;
         Fade_types.r_value = pwBuffer[2 * i + 1];
         //rk_printf("###pwBuffer[2*%d] = 0x%x +1=0x%x effr =%d inout=%d\n",i, pwBuffer[2*i], pwBuffer[2*i+1],effr,Fade_types.is_in_or_out);
 

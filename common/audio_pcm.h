@@ -53,7 +53,7 @@ int pcm_prepare(struct pcm *pcm_dev);
 int pcm_start(struct pcm *pcm_dev);
 int pcm_stop(struct pcm *pcm_dev);
 int pcm_close(struct pcm *pcm_dev);
-unsigned long pcm_write(struct pcm *pcm_dev, void *data, unsigned long bytes);
-unsigned long pcm_read(struct pcm *pcm_dev, void *data, unsigned long bytes);
+uint32_t pcm_write(struct pcm *pcm_dev, void *data, uint32_t bytes);
+uint32_t pcm_read(struct pcm *pcm_dev, void *data, uint32_t bytes);
 
 #endif /* __AUDIO_SERVER_PCM_H__ */

@@ -65,7 +65,7 @@ static uint16_t read_int16(struct wav_reader* wr) {
 
 void* wav_read_open(const char *filename) {
 	struct wav_reader* wr = (struct wav_reader*) oscl_malloc(sizeof(*wr));
-	long data_pos = 0;
+	int32_t data_pos = 0;
 	memset(wr, 0, sizeof(*wr));
 
 	wr->wav = fopen(filename, "rb");

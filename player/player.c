@@ -660,7 +660,7 @@ uint32_t player_get_target(player_handle_t self, char *file_name)
     return (player_get_cur_time(self) / 1000);
 }
 
-void player_set_seek(long offset)
+void player_set_seek(int32_t offset)
 {
     RK_AUDIO_LOG_W("Do not use this API any more, Set cfg->start_time when call player_play");
 }

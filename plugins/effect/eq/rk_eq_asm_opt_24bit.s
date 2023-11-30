@@ -34,7 +34,7 @@ begin
     ;0-------------------------------
     LDR      r3,[r1,#0x00]     ;r3 = x1=(long )x
     MOV      r2,#0x2000
-    SMLAL    r4,r0,r3,r2   ;y =lbuff_1 + ((unsigned long long)x<<13);
+    SMLAL    r4,r0,r3,r2   ;y =lbuff_1 + ((uint64_t)x<<13);
     LSR      r4,r4,#13;
     ORR      r4,r4,r0,LSL #19   ; //Âß¼­orËãÊõ
     ASRS     r0,r0,#13          ; y =y>>13

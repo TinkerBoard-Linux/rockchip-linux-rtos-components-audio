@@ -5,8 +5,8 @@
 static void encodeSideInfo(mp3_enc *mp3);
 static int encodeMainData(mp3_enc *mp3);
 static void Huffmancodebits(mp3_enc *mp3, int *ix, gr_info *gi);
-static int HuffmanCode(int table_select, int x, int y, unsigned long *code,
-                       unsigned long *extword, int *codebits, int *extbits);
+static int HuffmanCode(int table_select, int x, int y, uint32_t *code,
+                       uint32_t *extword, int *codebits, int *extbits);
 static int L3_huffman_coder_count1(mp3_enc *mp3, struct huffcodetab *h,
                                    int v, int w, int x, int y);
 
@@ -133,7 +133,7 @@ unsigned int L3_format_bitstream(mp3_enc *mp3, unsigned char **ppOutBuf)
  *
  * Bits in value are assumed to be right-justified.
  */
-void putbits(mp3_enc *mp3, unsigned char *buf, unsigned long val, unsigned int n)
+void putbits(mp3_enc *mp3, unsigned char *buf, uint32_t val, unsigned int n)
 {
     static int mask[9] = {0x0, 0x1, 0x3, 0x7, 0xf, 0x1f, 0x3f, 0x7f, 0xff};
     int k, tmp;
@@ -293,7 +293,7 @@ void Huffmancodebits(mp3_enc *mp3, int *ix, gr_info *gi)
     int region2Start;
     int i, bigvalues, count1End;
     int v, w, x, y, cx_bits, cbits, xbits, stuffingBits;
-    unsigned long code, ext;
+    uint32_t code, ext;
     struct huffcodetab *h;
     int tablezeros, r0, r1, r2, rt, *pr;
 //  int bvbits, c1bits;
@@ -443,8 +443,8 @@ int L3_huffman_coder_count1(mp3_enc *mp3, struct huffcodetab *h, int v, int w, i
  * -----------
  * Implements the pseudocode of page 98 of the IS
  */
-int HuffmanCode(int table_select, int x, int y, unsigned long *code,
-                unsigned long *ext, int *cbits, int *xbits)
+int HuffmanCode(int table_select, int x, int y, uint32_t *code,
+                uint32_t *ext, int *cbits, int *xbits)
 {
     unsigned signx, signy, linbitsx, linbitsy, linbits, ylen, idx;
 //  unsigned xlen;

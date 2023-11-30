@@ -14,7 +14,7 @@ struct record_wav
     encode_output_t output;
     encode_post_t post;
     struct wav_header header;
-    long total_byte;
+    int32_t total_byte;
     void *userdata;
 };
 

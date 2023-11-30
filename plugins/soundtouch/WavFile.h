@@ -117,10 +117,10 @@ private:
     FILE *fptr;
 
     /// Position within the audio stream
-    long position;
+    int32_t position;
 
     /// Counter of how many bytes of sample data have been read from the file.
-    long dataRead;
+    int32_t dataRead;
 
     /// WAV header information
     WavHeader header;

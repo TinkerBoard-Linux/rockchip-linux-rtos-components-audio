@@ -51,7 +51,7 @@ typedef struct                      //5                      // 21
 
 typedef struct
 {
-    long long i_32buff[4 * Low_Bands]; // 0x00    8*410    4*10*8  L : 01 02,11,12,,,,,,,R: 01 02,,,,,,,,,
+    int64_t i_32buff[4 * Low_Bands]; // 0x00    8*410    4*10*8  L : 01 02,11,12,,,,,,,R: 01 02,,,,,,,,,
     int coef[5 * Low_Bands];  // 0x140  //
 
     // 加密控制参数, 为1 才能正确处理，其它会产生错误
@@ -4298,7 +4298,7 @@ typedef struct _EQCOEF_BLOCK
 
 } EQCOEF_BLOCK;
 
-void ROCKEQ_Get_Coeff(short *pGain, long Fs, RKEffect *userEQ)
+void ROCKEQ_Get_Coeff(short *pGain, int32_t Fs, RKEffect *userEQ)
 {
 
     uint32 r12 = 0;
@@ -4432,7 +4432,7 @@ void ROCKEQ_Get_Coeff(short *pGain, long Fs, RKEffect *userEQ)
             else
             {
                 DB_0_flag[i + Low_Bands] = 0;
-                temp = (((long)temp * peqC->eqC[i][seg].B) >> 13); //0x2156/*ROCKB[r12][i][seg]*/;
+                temp = (((int32_t)temp * peqC->eqC[i][seg].B) >> 13); //0x2156/*ROCKB[r12][i][seg]*/;
 
             }
             g_FilterState._a[i * 2] =  peqC->eqC[i][seg].a1; //0x3fc4;//ROCKa[r12][i][seg];
@@ -4502,13 +4502,13 @@ void EQ_ClearBuff(void)
  Arguments:
  Returns:
 ------------------------------------------------------------------------------*/
-void SubFiltering_24(long *pwBuffer, long cwBuffer, long LR, short ps_factor, short index, long mode)
+void SubFiltering_24(int32_t *pwBuffer, int32_t cwBuffer, int32_t LR, short ps_factor, short index, int32_t mode)
 {
-    long *pwbuffer;//ps_factor=0;  index = 2;
-    long  cwbuffer;
-    long lAccumulate;
-    long long lbuff_1, lbuff_2;
-    long long y, y1, x, x1;
+    int32_t *pwbuffer;//ps_factor=0;  index = 2;
+    int32_t  cwbuffer;
+    int32_t lAccumulate;
+    int64_t lbuff_1, lbuff_2;
+    int64_t y, y1, x, x1;
     short a0, a1, b0, b1;
 
     pwbuffer = pwBuffer;
@@ -4530,7 +4530,7 @@ void SubFiltering_24(long *pwBuffer, long cwBuffer, long LR, short ps_factor, sh
         {
             x = *pwbuffer ;
             x1 = x;
-            y = lbuff_1 + ((unsigned long long)x << 13);
+            y = lbuff_1 + ((uint64_t)x << 13);
 
             y >>= 13;
             y1 = y;//r8
@@ -4541,21 +4541,21 @@ void SubFiltering_24(long *pwBuffer, long cwBuffer, long LR, short ps_factor, sh
             }
             *pwbuffer = y; // write the PCM data
             pwbuffer += mode;
-            lbuff_1 = (long long)x1 * b0 + y1 * a0 + lbuff_2;
-            lbuff_2 = (long long)x1 * b1 + y1 * a1;
+            lbuff_1 = (int64_t)x1 * b0 + y1 * a0 + lbuff_2;
+            lbuff_2 = (int64_t)x1 * b1 + y1 * a1;
         }
         g_FilterState.i_32buff[index + LR * 2 * High_Bands] = lbuff_1;
         g_FilterState.i_32buff[index + 1 + LR * 2 * High_Bands] = lbuff_2;
     }
 }
 
-void SubFiltering_16(short *pwBuffer, long cwBuffer, long LR, short ps_factor, short index, long mode)
+void SubFiltering_16(short *pwBuffer, int32_t cwBuffer, int32_t LR, short ps_factor, short index, int32_t mode)
 {
     short *pwbuffer;//ps_factor=0;  index = 2;
-    long  cwbuffer;
-    long lAccumulate;
-    long lbuff_1, lbuff_2;
-    long  y, y1, x, x1;
+    int32_t  cwbuffer;
+    int32_t lAccumulate;
+    int32_t lbuff_1, lbuff_2;
+    int32_t  y, y1, x, x1;
     short a0, a1, b0, b1;
 
     pwbuffer = pwBuffer;
@@ -4577,7 +4577,7 @@ void SubFiltering_16(short *pwBuffer, long cwBuffer, long LR, short ps_factor, s
         {
             x = *pwbuffer ;
             x1 = x;
-            y = lbuff_1 + ((unsigned  long)x << 13);
+            y = lbuff_1 + ((unsigned  int32_t)x << 13);
 
             y >>= 13;
             y1 = y;//r8
@@ -4588,8 +4588,8 @@ void SubFiltering_16(short *pwBuffer, long cwBuffer, long LR, short ps_factor, s
             }
             *pwbuffer = y; // write the PCM data
             pwbuffer += mode;
-            lbuff_1 = (long)x1 * b0 + y1 * a0 + lbuff_2;
-            lbuff_2 = (long)x1 * b1 + y1 * a1;
+            lbuff_1 = (int32_t)x1 * b0 + y1 * a0 + lbuff_2;
+            lbuff_2 = (int32_t)x1 * b1 + y1 * a1;
         }
         g_FilterState.i_32buff[index + LR * 2 * High_Bands] = lbuff_1;
         g_FilterState.i_32buff[index + 1 + LR * 2 * High_Bands] = lbuff_2;
@@ -4608,10 +4608,10 @@ void SubFiltering_16(short *pwBuffer, long cwBuffer, long LR, short ps_factor, s
              [mode]   --  PCM 存放模式: 1 表示LLL... RRR...;　2 表示LRLRLR...
  Returns:
 ------------------------------------------------------------------------------*/
-void RockEQFiltering(EQ_TYPE *pwBuffer, long cwBuffer, long LR, long mode, RKEffect *userEQ)
+void RockEQFiltering(EQ_TYPE *pwBuffer, int32_t cwBuffer, int32_t LR, int32_t mode, RKEffect *userEQ)
 {
 //    EQ_TYPE *pwbuffer = pwBuffer;
-    long cwbuffer = cwBuffer;
+    int32_t cwbuffer = cwBuffer;
     int index ;
 
     if (cwbuffer < 1)
@@ -4634,10 +4634,10 @@ void RockEQFiltering(EQ_TYPE *pwBuffer, long cwBuffer, long LR, long mode, RKEff
         }
     }
 }
-void   RockEQFiltering_Gain(EQ_TYPE *pwBuffer, long cwBuffer)
+void   RockEQFiltering_Gain(EQ_TYPE *pwBuffer, int32_t cwBuffer)
 {
     EQ_TYPE *pwbuffer = pwBuffer;
-    long cwbuffer = cwBuffer * 2;
+    int32_t cwbuffer = cwBuffer * 2;
     short factored_B = g_FilterState.factored_B;
     EQ_TYPE_LONG x;
     while (cwbuffer--)
@@ -4648,7 +4648,7 @@ void   RockEQFiltering_Gain(EQ_TYPE *pwBuffer, long cwBuffer)
     }
 }
 
-long long  signed_Rshift(long long in)
+int64_t  signed_Rshift(int64_t in)
 {
     if (in >= 0)
     {
@@ -4665,20 +4665,20 @@ long long  signed_Rshift(long long in)
 void filter_2_int_bass(EQ_TYPE *pwBuffer, unsigned short frameLen, int index, int L)
 {
 #if 0
-    long long y0;
-    long b0;
-    long b1;
-    long b2;
-    long a1;
-    long a2;
-    long x0;
-    long x1;
-    long x2;
-    long long y1;
-    long long y2;
-    long long lbuff_1, lbuff_2;
-    long long temp1, temp2;
-    long long t1, t2;
+    int64_t y0;
+    int32_t b0;
+    int32_t b1;
+    int32_t b2;
+    int32_t a1;
+    int32_t a2;
+    int32_t x0;
+    int32_t x1;
+    int32_t x2;
+    int64_t y1;
+    int64_t y2;
+    int64_t lbuff_1, lbuff_2;
+    int64_t temp1, temp2;
+    int64_t t1, t2;
     short i;
     a1 = g_bass_FilterState.coef[index * 5];
     a2 = g_bass_FilterState.coef[index * 5 + 1];
@@ -4691,11 +4691,11 @@ void filter_2_int_bass(EQ_TYPE *pwBuffer, unsigned short frameLen, int index, in
     for (i = 0; i < frameLen; i++)
     {
         x0 = *pwBuffer;
-        y0 = ((long long)x0 * b0) + lbuff_1;
+        y0 = ((int64_t)x0 * b0) + lbuff_1;
         y0 >>= 10;
 
-        lbuff_1 = ((long long)x0 * b1)  + (((long long)y0) * a1 >> 10) + lbuff_2;
-        lbuff_2 = ((long long)x0 * b2)  + (((long long)y0) * a2 >> 10);
+        lbuff_1 = ((int64_t)x0 * b1)  + (((int64_t)y0) * a1 >> 10) + lbuff_2;
+        lbuff_2 = ((int64_t)x0 * b2)  + (((int64_t)y0) * a2 >> 10);
 #ifdef CODEC_24BIT
 
         if ((y0 >> 33) != (y0 >> 63)) //符号位
@@ -4727,8 +4727,8 @@ void filter_2_int_bass(EQ_TYPE *pwBuffer, unsigned short frameLen, int index, in
 
 }
 
-extern void SubFilter_bass_Core_24(long *pwBuffer, unsigned short frameLen, int index, int L);
-void RockBassFiltering(EQ_TYPE *pwBuffer, long cwBuffer, long LR, long mode)
+extern void SubFilter_bass_Core_24(int32_t *pwBuffer, unsigned short frameLen, int index, int L);
+void RockBassFiltering(EQ_TYPE *pwBuffer, int32_t cwBuffer, int32_t LR, int32_t mode)
 {
     int index ;
 
@@ -4756,7 +4756,7 @@ void RockBassFiltering(EQ_TYPE *pwBuffer, long cwBuffer, long LR, long mode)
 ------------------------------------------------------------------------------*/
 void RockEQAdjust(short SmpRate, short *g, short db, RKEffect *userEQ) //db=1
 {
-    long iFs;
+    int32_t iFs;
     //short dbReduce;
     switch (SmpRate)
     {
@@ -4923,6 +4923,6 @@ rk_err_t rk_eq_deinit()
     return RK_SUCCESS;
 }
 #else
-long g_bass_FilterState;
+int32_t g_bass_FilterState;
 
 #endif

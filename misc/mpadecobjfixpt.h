@@ -58,7 +58,7 @@ public:
     // Returns:     returns 1 on success, 0 on failure
     ///////////////////////////////////////////////////////////////////////////
     int     Init_n(unsigned char *pSync,
-                   unsigned long ulSize,
+                   uint32_t ulSize,
                    unsigned char bUseSize = 0);
 
     ///////////////////////////////////////////////////////////////////////////
@@ -73,18 +73,18 @@ public:
     //                          number of PCM bytes prodced upon return.
     ///////////////////////////////////////////////////////////////////////////
     void    DecodeFrame_v(unsigned char *pSource,
-                          unsigned long *pulSize,
+                          uint32_t *pulSize,
                           unsigned char *pPCM,
-                          unsigned long *pulPCMSize);
+                          uint32_t *pulPCMSize);
 
     // overloaded new version that returns error code in errCode
     void    DecodeFrame_v(unsigned char *pSource,
-                          unsigned long *pulSize,
+                          uint32_t *pulSize,
                           unsigned char *pPCM,
-                          unsigned long *pulPCMSize,
+                          uint32_t *pulPCMSize,
                           int *errCode);
 
-    void    GetPCMInfo_v(unsigned long &ulSampRate,
+    void    GetPCMInfo_v(uint32_t &ulSampRate,
                          int &nChannels,
                          int &nBitsPerSample);
 

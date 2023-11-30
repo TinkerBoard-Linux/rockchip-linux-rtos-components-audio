@@ -34,9 +34,9 @@ static int sfBandIndex[4][3][23] =
     }
 };
 
-static int find_samplerate_index(config_t *config, long freq)
+static int find_samplerate_index(config_t *config, int32_t freq)
 {
-    long sr[4][3] =  {{11025, 12000,  8000},   /* mpeg 2.5 */
+    int32_t sr[4][3] =  {{11025, 12000,  8000},   /* mpeg 2.5 */
         {    0,     0,     0},   /* reserved */
         {22050, 24000, 16000},   /* mpeg 2 */
         {44100, 48000, 32000}
@@ -56,7 +56,7 @@ static int find_samplerate_index(config_t *config, long freq)
 
 static int find_bitrate_index(config_t *config, int bitr)
 {
-    long br[2][15] =
+    int32_t br[2][15] =
     {
         {0, 8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 144, 160}, /* mpeg 2/2.5 */
         {0, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320}
@@ -117,7 +117,7 @@ static mp3_enc *Mp3EncodeHeaderInit(config_t *config)
 
     {
         /* find number of whole bytes per frame and the remainder */
-        long x = config->mpeg.samples_per_frame * config->mpeg.bitr * (1000 / 8);
+        int32_t x = config->mpeg.samples_per_frame * config->mpeg.bitr * (1000 / 8);
         enc->info.bytes_per_frame = x / config->mpeg.samplerate;
         enc->info.remainder  = x % config->mpeg.samplerate;
     }
@@ -201,14 +201,14 @@ mp3_enc *Mp3EncodeVariableInit(int samplerate, int channel, int  Bitrate)
  * L3_compress:
  * ------------
  */
-long L3_compress(mp3_enc *mp3, int len, unsigned char **ppOutBuf)
+int32_t L3_compress(mp3_enc *mp3, int len, unsigned char **ppOutBuf)
 {
     int           ch;
     int           i;
     int           gr;
     int           write_bytes;
-    unsigned long *buffer_window[2];
-    buffer_window[0] = buffer_window[1] = (unsigned long *)mp3->config.in_buf;
+    uint32_t *buffer_window[2];
+    buffer_window[0] = buffer_window[1] = (uint32_t *)mp3->config.in_buf;
     /* sort out padding */
     mp3->config.mpeg.padding = (mp3->info.lag += mp3->info.remainder) >= mp3->config.mpeg.samplerate;
     if (mp3->config.mpeg.padding)

@@ -164,10 +164,10 @@ typedef struct _EQ_TABLE_BLOCK
     short UseEQ[EQ_NUM];
 }EQ_TABLE_BLOCK;
 */
-long RKEQAdjust(RKEffect *pEft, uint32 sampleRate)
+int32_t RKEQAdjust(RKEffect *pEft, uint32 sampleRate)
 {
     int i;
-    unsigned long SamplingRate = 44100;
+    uint32_t SamplingRate = 44100;
     /*
         EQ_TABLE_BLOCK* pTableBlock;
         pTableBlock = rkos_memory_malloc(sizeof(EQ_TABLE_BLOCK));
@@ -247,7 +247,7 @@ long RKEQAdjust(RKEffect *pEft, uint32 sampleRate)
 * return  : 0:success; other:failure.
 * note    : the data that audio effect would take care need use data format LRLRLR.
 ***************************************************************************/
-long EffectProcess(EQ_TYPE *pBuffer, uint32 PcmLen, RKEffect *userEQ)
+int32_t EffectProcess(EQ_TYPE *pBuffer, uint32 PcmLen, RKEffect *userEQ)
 {
     //RKEffect   *pEffect = &pAudio->EffectCtl;
     RKEffect   *pEffect = userEQ;
@@ -302,12 +302,12 @@ long EffectProcess(EQ_TYPE *pBuffer, uint32 PcmLen, RKEffect *userEQ)
 //EXT  uint32  AudioLen;
 static int EQ_FR_FLAG = 0;
 
-long EffectAdjust(RKEffect *userEQ, void *eqArg, uint32 sampleRate)
+int32_t EffectAdjust(RKEffect *userEQ, void *eqArg, uint32 sampleRate)
 {
     //RKEffect         *pEffect = &pAudio->EffectCtl;
     AUDIO_EQ_ARG *eqARG = (AUDIO_EQ_ARG *)eqArg;
     RKEffect *pEffect = userEQ;
-    unsigned long SamplingRate = 44100;
+    uint32_t SamplingRate = 44100;
     int i, j = 0;
     int EQ_AudioLen ;
     //rk_err_t ret;
@@ -418,7 +418,7 @@ long EffectAdjust(RKEffect *userEQ, void *eqArg, uint32 sampleRate)
 * return  :    0:success; other:failure.
 * note:
 ***************************************************************************/
-long EffectInit(void)
+int32_t EffectInit(void)
 {
     if (FW_LoadSegment(SEGMENT_ID_EFFECT_MODULE, SEGMENT_OVERLAY_ALL) != RK_SUCCESS)
     {
@@ -455,7 +455,7 @@ rk_err_t Effect_Delete()
 * return  :    0:success; other:failure.
 * note:
 ***************************************************************************/
-long EffectEnd(RKEffect *userEQ)
+int32_t EffectEnd(RKEffect *userEQ)
 {
     //RKEffect   *pEffect = &pAudio->EffectCtl;
     //RKEffect   *pEffect = userEQ;
@@ -463,7 +463,7 @@ long EffectEnd(RKEffect *userEQ)
 }
 
 
-void RockEQReduce9dB(EQ_TYPE *pwBuffer, long cwBuffer, long mode, RKEffect *userEQ)
+void RockEQReduce9dB(EQ_TYPE *pwBuffer, int32_t cwBuffer, int32_t mode, RKEffect *userEQ)
 {
     //RKEffect   *pEffect = &pAudio->EffectCtl;
     RKEffect   *pEffect = userEQ;

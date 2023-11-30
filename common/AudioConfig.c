@@ -150,12 +150,12 @@ int audio_device_close(void *dev)
     return rkdev_close(dev);
 }
 
-unsigned long audio_device_write(void *dev, char *data, unsigned long frames)
+uint32_t audio_device_write(void *dev, char *data, uint32_t frames)
 {
     return rkdev_write(dev, 0, data, frames);
 }
 
-unsigned long audio_device_read(void *dev, char *data, unsigned long frames)
+uint32_t audio_device_read(void *dev, char *data, uint32_t frames)
 {
     return rkdev_read(dev, 0, data, frames);
 }
@@ -388,12 +388,12 @@ int audio_device_close(void *dev)
     return rt_device_close((rt_device_t)dev);
 }
 
-unsigned long audio_device_write(void *dev, char *data, unsigned long frames)
+uint32_t audio_device_write(void *dev, char *data, uint32_t frames)
 {
     return rt_device_write(dev, 0, data, frames);
 }
 
-unsigned long audio_device_read(void *dev, char *data, unsigned long frames)
+uint32_t audio_device_read(void *dev, char *data, uint32_t frames)
 {
     return rt_device_read(dev, 0, data, frames);
 }

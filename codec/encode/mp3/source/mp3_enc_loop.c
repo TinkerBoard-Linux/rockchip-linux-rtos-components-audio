@@ -16,7 +16,7 @@ void calc_runlen(int ix[samp_per_frame2], gr_info *gi);
 int quantize(int ix[samp_per_frame2], int stepsize, int cutoff);
 int ix_max(int ix[samp_per_frame2], unsigned int begin, unsigned int end);
 
-static long
+static int32_t
 *xr,                    /* magnitudes of the spectral values */
 xrabs[samp_per_frame2], /* xr absolute */
 xrmax;                  /* maximum of xrabs array */
@@ -89,7 +89,7 @@ static int inner_loop(int ix[samp_per_frame2], int max_bits, gr_info *gi)
 #if 1
 void L3_iteration_loop(mp3_enc *mp3)
 #else
-void L3_iteration_loop(long            mdct_freq_org[2][2][samp_per_frame2],
+void L3_iteration_loop(int32_t            mdct_freq_org[2][2][samp_per_frame2],
                        L3_side_info_t *side_info,
                        int             l3_enc[2][2][samp_per_frame2],
                        int             mean_bits)
@@ -183,7 +183,7 @@ int quantize(int ix[samp_per_frame2], int stepsize, int cutoff)
      * is equal to a four bit shift in the fourth power of two table.
      */
     int i;
-    long scale = pow2_4[stepsize - 1]; /* 2**(-stepsize/4) */
+    int32_t scale = pow2_4[stepsize - 1]; /* 2**(-stepsize/4) */
 
     /* A quick check to see if ixmax will be less than 1000 (our table
      * size is 10000) this speeds up the early calls

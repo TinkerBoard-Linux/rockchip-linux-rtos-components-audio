@@ -15,13 +15,13 @@
 
 /**
  * resample init.
- * @param unsigned long ulInputRate  e.g: 48000.
- * @param unsigned long ulOutputRate e.g: 16000.
+ * @param uint32_t ulInputRate  e.g: 48000.
+ * @param uint32_t ulOutputRate e.g: 16000.
  * @return rt_err_t if init success, return RT_EOK.
  */
-long resample_48to16_4ch_init(SRCState_4ch *pSRC, unsigned long ulInputRate, unsigned long ulOutputRate)
+int32_t resample_48to16_4ch_init(SRCState_4ch *pSRC, uint32_t ulInputRate, uint32_t ulOutputRate)
 {
-    long lNumPolyPhases, lSampleIncrement, lNumTaps;
+    int32_t lNumPolyPhases, lSampleIncrement, lNumTaps;
 
     memset(pSRC->Left, 0, NUMTAPS_4CH * 2 * 4);
     pSRC->lastSample1 = 0;
@@ -237,13 +237,13 @@ long resample_48to16_4ch_init(SRCState_4ch *pSRC, unsigned long ulInputRate, uns
  * @param ssrc_type *psInData1, input 4ch 16bit pcm data.
  * @param ssrc_type *psOutData1, output 4ch 16bit pcm data
  * and mute the 4th ch.
- * @param long lNumInputSamples, each channel's samples.
- * @param long plNumOutputSamples, each channel's samples.
+ * @param int32_t lNumInputSamples, each channel's samples.
+ * @param int32_t plNumOutputSamples, each channel's samples.
  */
 void resample_48to16_4ch_process(SRCState_4ch *pSRC, ssrc_type *psInData1, ssrc_type *psOutData1,
-                                 long lNumInputSamples, long *plNumOutputSamples)
+                                 int32_t lNumInputSamples, int32_t *plNumOutputSamples)
 {
-    long long lOutData1, lOutData2, lOutData3, lOutData4;
+    int64_t lOutData1, lOutData2, lOutData3, lOutData4;
     short *psPtr1;
     ssrc_type  *psPtr2, *psPtr3, *psPtr4, *psPtr5;
     ssrc_type *psSample1, *psSample2, *psSample3, *psSample4;
@@ -331,10 +331,10 @@ void resample_48to16_4ch_process(SRCState_4ch *pSRC, ssrc_type *psInData1, ssrc_
         i = 0;
         while (i < NUMTAPS_4CH)
         {
-            lOutData1 += (long long)sCoeff * (long long)(*psPtr2);
-            lOutData2 += (long long)sCoeff * (long long)(*psPtr3);
-            lOutData3 += (long long)sCoeff * (long long)(*psPtr4);
-            lOutData4 += (long long)sCoeff * (long long)(*psPtr5);
+            lOutData1 += (int64_t)sCoeff * (int64_t)(*psPtr2);
+            lOutData2 += (int64_t)sCoeff * (int64_t)(*psPtr3);
+            lOutData3 += (int64_t)sCoeff * (int64_t)(*psPtr4);
+            lOutData4 += (int64_t)sCoeff * (int64_t)(*psPtr5);
             if (i != (NUMTAPS_4CH - 1))
             {
                 sCoeff = *psPtr1++;

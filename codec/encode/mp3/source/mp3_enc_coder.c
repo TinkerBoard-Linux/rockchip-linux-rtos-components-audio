@@ -10,12 +10,12 @@
 
 #include "mp3_enc_table1.h"
 
-long int
+int32_t
 x[2][HAN_SIZE],
 z[512];
 int off[2];
-extern  long   mdct_freq[2][2][samp_per_frame2];  //576*4*4 = 9216  1232256
-extern long   l3_sb_sample[2][3][18][SBLIMIT];   //32*6*18*4 = 13824
+extern  int32_t   mdct_freq[2][2][samp_per_frame2];  //576*4*4 = 9216  1232256
+extern int32_t   l3_sb_sample[2][3][18][SBLIMIT];   //32*6*18*4 = 13824
 
 /*
  * L3_window_filter_subband:
@@ -30,10 +30,10 @@ extern long   l3_sb_sample[2][3][18][SBLIMIT];   //32*6*18*4 = 13824
  * picking out values from the windowed samples, and then multiplying
  * them by the filter matrix, producing 32 subband samples.
  */
-void L3_window_filter_subband(mp3_enc *mp3, unsigned long **buffer, long s[SBLIMIT], int k)
+void L3_window_filter_subband(mp3_enc *mp3, uint32_t **buffer, int32_t s[SBLIMIT], int k)
 {
 
-    long y[64], s1, s2;
+    int32_t y[64], s1, s2;
     int i, j;
 
     /* replace 32 oldest samples with 32 new samples */
@@ -99,24 +99,24 @@ void L3_window_filter_subband(mp3_enc *mp3, unsigned long **buffer, long s[SBLIM
 #if 1
 void L3_mdct_sub(mp3_enc *mp3)
 #else
-void L3_mdct_sub(mp3_enc *mp3, long sb_sample[2][3][18][SBLIMIT],
-                 long mdct_freq[2][2][samp_per_frame2])
+void L3_mdct_sub(mp3_enc *mp3, int32_t sb_sample[2][3][18][SBLIMIT],
+                 int32_t mdct_freq[2][2][samp_per_frame2])
 #endif
 {
     /* note. we wish to access the array 'mdct_freq[2][2][576]' as
      * [2][2][32][18]. (32*18=576),
      */
-    long (*mdct_enc)[18];
+    int32_t (*mdct_enc)[18];
 
     int  ch, gr, band, j, k;
-    long mdct_in[36];
-    long bu, bd, *m;
+    int32_t mdct_in[36];
+    int32_t bu, bd, *m;
 
     for (gr = 0; gr < mp3->config.mpeg.granules; gr++)
         for (ch = mp3->config.mpeg.channels; ch--;)
         {
             /* set up pointer to the part of mdct_freq we're using */
-            mdct_enc = (long (*)[18]) mp3->mdct_freq[gr][ch];
+            mdct_enc = (int32_t (*)[18]) mp3->mdct_freq[gr][ch];
 
             /* Compensate for inversion in the analysis filter
              * (every odd index of band AND k)
@@ -135,7 +135,7 @@ void L3_mdct_sub(mp3_enc *mp3, long sb_sample[2][3][18][SBLIMIT],
                 }
 
                 /* Calculation of the MDCT
-                 * In the case of long blocks ( block_type 0,1,3 ) there are
+                 * In the case of int32_t blocks ( block_type 0,1,3 ) there are
                  * 36 coefficients in the time domain and 18 in the frequency
                  * domain.
                  */

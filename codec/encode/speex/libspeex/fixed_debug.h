@@ -37,7 +37,7 @@
 
 #include <stdio.h>
 
-extern long long spx_mips;
+extern int64_t spx_mips;
 #define MIPS_INC spx_mips++,
 
 #define QCONST16(x,bits) ((spx_word16_t)(.5+(x)*(((spx_word32_t)1)<<(bits))))
@@ -59,9 +59,9 @@ static inline short NEG16(int x)
    spx_mips++;
    return res;
 }
-static inline int NEG32(long long x)
+static inline int NEG32(int64_t x)
 {
-   long long res;
+   int64_t res;
    if (!VERIFY_INT(x))
    {
       fprintf (stderr, "NEG16: input is not int: %d\n", (int)x);
@@ -128,9 +128,9 @@ static inline short _SHL16(int a, int shift, char *file, int line)
    return res;
 }
 
-static inline int SHR32(long long a, int shift)
+static inline int SHR32(int64_t a, int shift)
 {
-   long long  res;
+   int64_t  res;
    if (!VERIFY_INT(a) || !VERIFY_SHORT(shift))
    {
       fprintf (stderr, "SHR32: inputs are not int: %d %d\n", (int)a, shift);
@@ -143,9 +143,9 @@ static inline int SHR32(long long a, int shift)
    spx_mips++;
    return res;
 }
-static inline int SHL32(long long a, int shift)
+static inline int SHL32(int64_t a, int shift)
 {
-   long long  res;
+   int64_t  res;
    if (!VERIFY_INT(a) || !VERIFY_SHORT(shift))
    {
       fprintf (stderr, "SHL32: inputs are not int: %d %d\n", (int)a, shift);
@@ -202,9 +202,9 @@ static inline short _SUB16(int a, int b, char *file, int line)
 }
 
 #define ADD32(a, b) _ADD32(a, b, __FILE__, __LINE__)
-static inline int _ADD32(long long a, long long b, char *file, int line)
+static inline int _ADD32(int64_t a, int64_t b, char *file, int line)
 {
-   long long res;
+   int64_t res;
    if (!VERIFY_INT(a) || !VERIFY_INT(b))
    {
       fprintf (stderr, "ADD32: inputs are not int: %d %d in %s: line %d\n", (int)a, (int)b, file, line);
@@ -218,9 +218,9 @@ static inline int _ADD32(long long a, long long b, char *file, int line)
    return res;
 }
 
-static inline int SUB32(long long a, long long b)
+static inline int SUB32(int64_t a, int64_t b)
 {
-   long long res;
+   int64_t res;
    if (!VERIFY_INT(a) || !VERIFY_INT(b))
    {
       fprintf (stderr, "SUB32: inputs are not int: %d %d\n", (int)a, (int)b);
@@ -252,12 +252,12 @@ static inline short MULT16_16_16(int a, int b)
 #define MULT16_16(a, b) _MULT16_16(a, b, __FILE__, __LINE__)
 static inline int _MULT16_16(int a, int b, char *file, int line)
 {
-   long long res;
+   int64_t res;
    if (!VERIFY_SHORT(a) || !VERIFY_SHORT(b))
    {
       fprintf (stderr, "MULT16_16: inputs are not short: %d %d in %s: line %d\n", a, b, file, line);
    }
-   res = ((long long)a)*b;
+   res = ((int64_t)a)*b;
    if (!VERIFY_INT(res))
       fprintf (stderr, "MULT16_16: output is not int: %d in %s: line %d\n", (int)res, file, line);
    spx_mips++;
@@ -270,32 +270,32 @@ static inline int _MULT16_16(int a, int b, char *file, int line)
 #define MAC16_16_P13(c,a,b)     (EXTRACT16(ADD32((c),SHR32(ADD32(4096,MULT16_16((a),(b))),13))))
 
 #define MULT16_32_QX(a, b, Q) _MULT16_32_QX(a, b, Q, __FILE__, __LINE__)
-static inline int _MULT16_32_QX(int a, long long b, int Q, char *file, int line)
+static inline int _MULT16_32_QX(int a, int64_t b, int Q, char *file, int line)
 {
-   long long res;
+   int64_t res;
    if (!VERIFY_SHORT(a) || !VERIFY_INT(b))
    {
       fprintf (stderr, "MULT16_32_Q%d: inputs are not short+int: %d %d in %s: line %d\n", Q, (int)a, (int)b, file, line);
    }
    if (ABS32(b)>=(1<<(15+Q)))
       fprintf (stderr, "MULT16_32_Q%d: second operand too large: %d %d in %s: line %d\n", Q, (int)a, (int)b, file, line);
-   res = (((long long)a)*(long long)b) >> Q;
+   res = (((int64_t)a)*(int64_t)b) >> Q;
    if (!VERIFY_INT(res))
       fprintf (stderr, "MULT16_32_Q%d: output is not int: %d*%d=%d in %s: line %d\n", Q, (int)a, (int)b,(int)res, file, line);
    spx_mips+=5;
    return res;
 }
 
-static inline int MULT16_32_PX(int a, long long b, int Q)
+static inline int MULT16_32_PX(int a, int64_t b, int Q)
 {
-   long long res;
+   int64_t res;
    if (!VERIFY_SHORT(a) || !VERIFY_INT(b))
    {
       fprintf (stderr, "MULT16_32_P%d: inputs are not short+int: %d %d\n", Q, (int)a, (int)b);
    }
    if (ABS32(b)>=(1<<(15+Q)))
       fprintf (stderr, "MULT16_32_Q%d: second operand too large: %d %d\n", Q, (int)a, (int)b);
-   res = ((((long long)a)*(long long)b) + ((1<<Q)>>1))>> Q;
+   res = ((((int64_t)a)*(int64_t)b) + ((1<<Q)>>1))>> Q;
    if (!VERIFY_INT(res))
       fprintf (stderr, "MULT16_32_P%d: output is not int: %d*%d=%d\n", Q, (int)a, (int)b,(int)res);
    spx_mips+=5;
@@ -322,12 +322,12 @@ static inline int SATURATE(int a, int b)
 
 static inline int MULT16_16_Q11_32(int a, int b)
 {
-   long long res;
+   int64_t res;
    if (!VERIFY_SHORT(a) || !VERIFY_SHORT(b))
    {
       fprintf (stderr, "MULT16_16_Q11: inputs are not short: %d %d\n", a, b);
    }
-   res = ((long long)a)*b;
+   res = ((int64_t)a)*b;
    res >>= 11;
    if (!VERIFY_INT(res))
       fprintf (stderr, "MULT16_16_Q11: output is not short: %d*%d=%d\n", (int)a, (int)b, (int)res);
@@ -336,12 +336,12 @@ static inline int MULT16_16_Q11_32(int a, int b)
 }
 static inline short MULT16_16_Q13(int a, int b)
 {
-   long long res;
+   int64_t res;
    if (!VERIFY_SHORT(a) || !VERIFY_SHORT(b))
    {
       fprintf (stderr, "MULT16_16_Q13: inputs are not short: %d %d\n", a, b);
    }
-   res = ((long long)a)*b;
+   res = ((int64_t)a)*b;
    res >>= 13;
    if (!VERIFY_SHORT(res))
       fprintf (stderr, "MULT16_16_Q13: output is not short: %d*%d=%d\n", a, b, (int)res);
@@ -350,12 +350,12 @@ static inline short MULT16_16_Q13(int a, int b)
 }
 static inline short MULT16_16_Q14(int a, int b)
 {
-   long long res;
+   int64_t res;
    if (!VERIFY_SHORT(a) || !VERIFY_SHORT(b))
    {
       fprintf (stderr, "MULT16_16_Q14: inputs are not short: %d %d\n", a, b);
    }
-   res = ((long long)a)*b;
+   res = ((int64_t)a)*b;
    res >>= 14;
    if (!VERIFY_SHORT(res))
       fprintf (stderr, "MULT16_16_Q14: output is not short: %d\n", (int)res);
@@ -364,12 +364,12 @@ static inline short MULT16_16_Q14(int a, int b)
 }
 static inline short MULT16_16_Q15(int a, int b)
 {
-   long long res;
+   int64_t res;
    if (!VERIFY_SHORT(a) || !VERIFY_SHORT(b))
    {
       fprintf (stderr, "MULT16_16_Q15: inputs are not short: %d %d\n", a, b);
    }
-   res = ((long long)a)*b;
+   res = ((int64_t)a)*b;
    res >>= 15;
    if (!VERIFY_SHORT(res))
    {
@@ -381,12 +381,12 @@ static inline short MULT16_16_Q15(int a, int b)
 
 static inline short MULT16_16_P13(int a, int b)
 {
-   long long res;
+   int64_t res;
    if (!VERIFY_SHORT(a) || !VERIFY_SHORT(b))
    {
       fprintf (stderr, "MULT16_16_P13: inputs are not short: %d %d\n", a, b);
    }
-   res = ((long long)a)*b;
+   res = ((int64_t)a)*b;
    res += 4096;
    if (!VERIFY_INT(res))
       fprintf (stderr, "MULT16_16_P13: overflow: %d*%d=%d\n", a, b, (int)res);
@@ -398,12 +398,12 @@ static inline short MULT16_16_P13(int a, int b)
 }
 static inline short MULT16_16_P14(int a, int b)
 {
-   long long res;
+   int64_t res;
    if (!VERIFY_SHORT(a) || !VERIFY_SHORT(b))
    {
       fprintf (stderr, "MULT16_16_P14: inputs are not short: %d %d\n", a, b);
    }
-   res = ((long long)a)*b;
+   res = ((int64_t)a)*b;
    res += 8192;
    if (!VERIFY_INT(res))
       fprintf (stderr, "MULT16_16_P14: overflow: %d*%d=%d\n", a, b, (int)res);
@@ -415,12 +415,12 @@ static inline short MULT16_16_P14(int a, int b)
 }
 static inline short MULT16_16_P15(int a, int b)
 {
-   long long res;
+   int64_t res;
    if (!VERIFY_SHORT(a) || !VERIFY_SHORT(b))
    {
       fprintf (stderr, "MULT16_16_P15: inputs are not short: %d %d\n", a, b);
    }
-   res = ((long long)a)*b;
+   res = ((int64_t)a)*b;
    res += 16384;
    if (!VERIFY_INT(res))
       fprintf (stderr, "MULT16_16_P15: overflow: %d*%d=%d\n", a, b, (int)res);
@@ -433,9 +433,9 @@ static inline short MULT16_16_P15(int a, int b)
 
 #define DIV32_16(a, b) _DIV32_16(a, b, __FILE__, __LINE__)
 
-static inline int _DIV32_16(long long a, long long b, char *file, int line)
+static inline int _DIV32_16(int64_t a, int64_t b, char *file, int line)
 {
-   long long res;
+   int64_t res;
    if (b==0)
    {
       fprintf(stderr, "DIV32_16: divide by zero: %d/%d in %s: line %d\n", (int)a, (int)b, file, line);
@@ -459,9 +459,9 @@ static inline int _DIV32_16(long long a, long long b, char *file, int line)
 }
 
 #define DIV32(a, b) _DIV32(a, b, __FILE__, __LINE__)
-static inline int _DIV32(long long a, long long b, char *file, int line)
+static inline int _DIV32(int64_t a, int64_t b, char *file, int line)
 {
-   long long res;
+   int64_t res;
    if (b==0)
    {
       fprintf(stderr, "DIV32: divide by zero: %d/%d in %s: line %d\n", (int)a, (int)b, file, line);

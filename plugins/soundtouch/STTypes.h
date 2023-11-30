@@ -42,7 +42,7 @@
 #include "typedef.h"
 
 typedef unsigned int    uint;
-typedef unsigned long   ulong;
+typedef uint32_t   uint32_t;
 
 
 //typedef int int;
@@ -54,7 +54,7 @@ typedef unsigned long   ulong;
 // 16bit integer sample type
 typedef short SAMPLETYPE;
 // data type for sample accumulation: Use 32bit integer to prevent overflows
-typedef long  LONG_SAMPLETYPE;
+typedef int32_t  LONG_SAMPLETYPE;
 
 
 

@@ -18,13 +18,13 @@
 
 
 #ifdef CODEC_24BIT
-typedef long    fade_short;
-typedef long long   fade_long;
+typedef int32_t    fade_short;
+typedef int32_t int32_t   fade_int32_t;
 #define fade_max_coef   16777215
 #define fade_scale   24
 #else
 typedef short    fade_short;
-typedef long    fade_long;
+typedef int32_t    fade_int32_t;
 #define fade_max_coef   65535
 #define fade_scale   16
 #endif
@@ -35,9 +35,9 @@ typedef long    fade_long;
 
 //initialization.
 //begin:the frist specimen serial number,len:length  type: 0-fade in 1-fade out.
-void FadeInit(long begin, long len, int type);
+void FadeInit(int32_t begin, int32_t len, int type);
 void DC_filter(short *pwBuffer, unsigned short frameLen);
-long FadeDoOnce(void);
+int32_t FadeDoOnce(void);
 void FadeProcess(fade_short *pwBuffer, unsigned short frameLen);
 int FadeIsFinished(void);
 

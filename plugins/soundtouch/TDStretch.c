@@ -438,7 +438,7 @@ void TDStretch_processSamples(TDStretch *pTDS)
 {
     int ovlSkip;
 
-    // Process samples as long as there are enough samples in 'inputBuffer'
+    // Process samples as int32_t as there are enough samples in 'inputBuffer'
     // to form a processing frame.
     // while ((int)inputBuffer.numSamples() >= sampleReq)
     while ((int)FIFOSampleBuffer_numSamples(&(pTDS->inputBuffer)) >= pTDS->sampleReq)
@@ -535,7 +535,7 @@ void TDStretch_acceptNewOverlapLength(TDStretch *pTDS, int newOverlapLength)
             pTDS->pMidBufferUnaligned = midBuf;
         //pTDS->pMidBufferUnaligned = (SAMPLETYPE *)malloc(pTDS->overlapLength * 2*sizeof(SAMPLETYPE)+16);
         // ensure that 'pMidBuffer' is aligned to 16 byte boundary for efficiency
-        pTDS->pMidBuffer = (SAMPLETYPE *)((((ulong)pTDS->pMidBufferUnaligned) + 15) & (ulong) - 16);
+        pTDS->pMidBuffer = (SAMPLETYPE *)((((uint32_t)pTDS->pMidBufferUnaligned) + 15) & (uint32_t) - 16);
 
         TDStretch_clearMidBuffer(pTDS);
     }
@@ -590,8 +590,8 @@ void TDStretch_calculateOverlapLength(TDStretch *pTDS, int aoverlapMs)
 
 double TDStretch_calcCrossCorr(TDStretch *pTDS, const short *mixingPos, const short *compare)
 {
-    long corr;
-    long norm;
+    int32_t corr;
+    int32_t norm;
     int i;
 
     corr = norm = 0;

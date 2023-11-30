@@ -143,7 +143,7 @@ int ape_read_header(APEDec *dec)
     ape->file_size = ape_fsize(&dec->in);
     ape->total_blocks = ape->blocksperframe * (ape->totalframes - 1) + ape->finalframeblocks;
     ape->file_time = (uint32_t)(((double)(ape->total_blocks) * (double)(1000)) / (double)(ape->samplerate));
-    ape->bitrate = (uint32_t)(((long long)(ape->file_size - dec->ID3_len) * 8000) / (double)(ape->file_time));
+    ape->bitrate = (uint32_t)(((int64_t)(ape->file_size - dec->ID3_len) * 8000) / (double)(ape->file_time));
     RK_AUDIO_LOG_V("APE version %d\n"
                    "compression %d\n"
                    "totalframes %d\n"

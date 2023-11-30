@@ -72,7 +72,7 @@ struct pcm *pcm_open(const int dev_id, int flag)
     return pcm_dev;
 }
 
-static unsigned long m_bytes_to_frames(struct pcm *pcm_dev, unsigned long bytes)
+static uint32_t m_bytes_to_frames(struct pcm *pcm_dev, uint32_t bytes)
 {
     return bytes / (pcm_dev->config.channels * (pcm_dev->config.bits >> 3));
 }
@@ -275,7 +275,7 @@ int pcm_close(struct pcm *pcm_dev)
     return 0;
 }
 
-unsigned long pcm_write(struct pcm *pcm_dev, void *data, unsigned long bytes)
+uint32_t pcm_write(struct pcm *pcm_dev, void *data, uint32_t bytes)
 {
     if (!pcm_dev)
         return RK_AUDIO_FAILURE;
@@ -283,11 +283,11 @@ unsigned long pcm_write(struct pcm *pcm_dev, void *data, unsigned long bytes)
         return PCM_WRONG_TYPE;
     if (bytes != pcm_dev->config.period_size)
         return PCM_WRONG_LENGTH;
-    unsigned long frames = m_bytes_to_frames(pcm_dev, bytes);
+    uint32_t frames = m_bytes_to_frames(pcm_dev, bytes);
     return audio_device_write(pcm_dev->device, data, frames);
 }
 
-unsigned long pcm_read(struct pcm *pcm_dev, void *data, unsigned long bytes)
+uint32_t pcm_read(struct pcm *pcm_dev, void *data, uint32_t bytes)
 {
     if (!pcm_dev)
         return RK_AUDIO_FAILURE;
@@ -295,6 +295,6 @@ unsigned long pcm_read(struct pcm *pcm_dev, void *data, unsigned long bytes)
         return PCM_WRONG_TYPE;
     if (bytes != pcm_dev->config.period_size)
         return PCM_WRONG_LENGTH;
-    unsigned long frames = m_bytes_to_frames(pcm_dev, bytes);
+    uint32_t frames = m_bytes_to_frames(pcm_dev, bytes);
     return audio_device_read(pcm_dev->device, data, frames);
 }

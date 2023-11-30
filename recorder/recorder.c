@@ -200,8 +200,8 @@ void write_run(void *data)
     char *last_buf;
     char *read_buf;
     char *temp_buf = NULL;
-    long temp_count = 0;
-    long temp_size;
+    int32_t temp_count = 0;
+    int32_t temp_size;
     size_t read_size = 0;
     size_t write_size = 0;
     size_t frame_size = 0;

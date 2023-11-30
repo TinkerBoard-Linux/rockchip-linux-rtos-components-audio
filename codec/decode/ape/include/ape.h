@@ -5,7 +5,7 @@
 
 typedef unsigned char u8;
 typedef unsigned short u16;
-typedef unsigned long u32;
+typedef uint32_t u32;
 
 #define int64_t_C(c)     (int64_t)(c)
 #define uint64_t_C(c)    (uint64_t)(c)
@@ -193,7 +193,7 @@ typedef struct APEDec
 
 #endif
 
-extern long ape_fsize(void *fd);
+extern int32_t ape_fsize(void *fd);
 extern int ape_fseek(void *fd, int offset, int mode);
 extern int ape_ftell(void *fd);
 extern int ape_fread(uint8_t *buf, int size, int count, void *fd);

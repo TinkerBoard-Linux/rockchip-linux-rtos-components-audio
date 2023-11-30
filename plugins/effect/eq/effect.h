@@ -33,11 +33,11 @@ typedef enum
 } eEQMode;
 
 #ifdef CODEC_24BIT
-typedef long    EQ_TYPE;
-typedef long long   EQ_TYPE_LONG;
+typedef int32_t    EQ_TYPE;
+typedef int64_t   EQ_TYPE_LONG;
 #else
 typedef short    EQ_TYPE;
-typedef long    EQ_TYPE_LONG;
+typedef int32_t    EQ_TYPE_LONG;
 
 #endif
 
@@ -45,7 +45,7 @@ typedef long    EQ_TYPE_LONG;
 /*
 typedef __PACKED_STRUCT
 {
-    short    dbGain[5]; //5 band EQµÄÔöÒæ
+    short    dbGain[5]; //5 band EQï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 } tRKEQCoef;
 */
 typedef __PACKED_STRUCT
@@ -77,16 +77,16 @@ typedef __PACKED_STRUCT
 /* API interface function. */
 
 rk_err_t Effect_Delete(void);
-long EffectInit(void);       // initialization.
-long EffectEnd(RKEffect *userEQ);      //handle over.
-long EffectProcess(EQ_TYPE *pBuffer, uint32 PcmLen, RKEffect *userEQ);   //audio effect process function,call it every frame.
+int32_t EffectInit(void);       // initialization.
+int32_t EffectEnd(RKEffect *userEQ);      //handle over.
+int32_t EffectProcess(EQ_TYPE *pBuffer, uint32 PcmLen, RKEffect *userEQ);   //audio effect process function,call it every frame.
 
 //this function is for adjust audio effect.
-long EffectAdjust(RKEffect *userEQ, void *eqARG, uint32 sampleRate);
-long RKEQAdjust(RKEffect *pEft, uint32 sampleRate);
+int32_t EffectAdjust(RKEffect *userEQ, void *eqARG, uint32 sampleRate);
+int32_t RKEQAdjust(RKEffect *pEft, uint32 sampleRate);
 void EQ_ClearBuff(void);
 void ReadEqData(uint8 *p, uint32 off, uint32 size);
-void RockEQReduce9dB(EQ_TYPE *pwBuffer, long cwBuffer, long mode, RKEffect *userEQ);
+void RockEQReduce9dB(EQ_TYPE *pwBuffer, int32_t cwBuffer, int32_t mode, RKEffect *userEQ);
 void RockEQAdjust(short SmpRate, short *g, short db, RKEffect *userEQ);
 void RockEQProcess(EQ_TYPE *pData, uint32 PcmLen, RKEffect *userEQ);
 rk_err_t rk_eq_init(void);

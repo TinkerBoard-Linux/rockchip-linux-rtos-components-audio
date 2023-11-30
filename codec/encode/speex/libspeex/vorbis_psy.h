@@ -79,7 +79,7 @@ typedef struct {
 
   float *window;
   float *noiseoffset;
-  long  *bark;
+  int32_t  *bark;
 
 } VorbisPsy;
 

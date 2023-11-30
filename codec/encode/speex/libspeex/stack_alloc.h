@@ -43,6 +43,8 @@
 #endif
 #endif
 
+#include <stdint.h>
+
 /**
  * @def ALIGN(stack, size)
  *
@@ -97,15 +99,15 @@ extern char *g_p_spx_enc_stk_top;
 
 #include <valgrind/memcheck.h>
 
-#define ALIGN(stack, size) ((stack) += ((size) - (long)(stack)) & ((size) - 1))
+#define ALIGN(stack, size) ((stack) += ((size) - (int32_t)(stack)) & ((size) - 1))
 
 #define PUSH(stack, size, type) (VALGRIND_MAKE_NOACCESS(stack, 1000),ALIGN((stack),sizeof(type)),VALGRIND_MAKE_WRITABLE(stack, ((size)*sizeof(type))),(stack)+=((size)*sizeof(type)),(type*)((stack)-((size)*sizeof(type))))
 
-#define PUSHS(stack, type) (VALGRIND_MAKE_NOACCESS(stack, 1000),ALIGN((stack),sizeof(long)),VALGRIND_MAKE_WRITABLE(stack, (sizeof(type))),(stack)+=(sizeof(type)),(type*)((stack)-(sizeof(type))))
+#define PUSHS(stack, type) (VALGRIND_MAKE_NOACCESS(stack, 1000),ALIGN((stack),sizeof(int32_t)),VALGRIND_MAKE_WRITABLE(stack, (sizeof(type))),(stack)+=(sizeof(type)),(type*)((stack)-(sizeof(type))))
 
 #else
 
-#define ALIGN(stack, size) ((stack) += ((size) - (long)(stack)) & ((size) - 1))
+#define ALIGN(stack, size) ((stack) += ((size) - (int32_t)(stack)) & ((size) - 1))
 
 #ifdef BAIDU_SPEEX_ENCODE_STACK_MONITOR
 #define PUSH(stack, size, type) (ALIGN((stack),sizeof(type)),(stack)+=((size)*sizeof(type)), (g_p_spx_enc_stk_top = (stack > g_p_spx_enc_stk_top) ? (stack):g_p_spx_enc_stk_top), (type*)((stack)-((size)*sizeof(type))))
@@ -113,7 +115,7 @@ extern char *g_p_spx_enc_stk_top;
 #define PUSH(stack, size, type) (ALIGN((stack),sizeof(type)),(stack)+=((size)*sizeof(type)),(type*)((stack)-((size)*sizeof(type))))
 #endif
 
-#define PUSHS(stack, type) (ALIGN((stack),sizeof(long)),(stack)+=(sizeof(type)),(type*)((stack)-(sizeof(type))))
+#define PUSHS(stack, type) (ALIGN((stack),sizeof(int32_t)),(stack)+=(sizeof(type)),(type*)((stack)-(sizeof(type))))
 
 #endif
 

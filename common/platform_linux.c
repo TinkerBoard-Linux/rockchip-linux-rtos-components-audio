@@ -159,12 +159,12 @@ int audio_device_close(void *dev)
     return 0;
 }
 
-unsigned long audio_device_write(void *dev, char *data, unsigned long frames)
+uint32_t audio_device_write(void *dev, char *data, uint32_t frames)
 {
     return 0;
 }
 
-unsigned long audio_device_read(void *dev, char *data, unsigned long frames)
+uint32_t audio_device_read(void *dev, char *data, uint32_t frames)
 {
     return 0;
 }
