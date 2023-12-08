@@ -134,6 +134,23 @@ typedef void *HDC;
 
 typedef void *HDC;
 
+#elif defined(__OS_LESS__)
+#define OS_IS_LESS
+
+#ifndef false
+#define false   0
+#endif
+
+#ifndef true
+#define true    1
+#endif
+
+#define PLAYER_TASK_PRIORITY        14
+#define RECORDER_TASK_PRIORITY      14
+#define RK_AUDIO_SUCCESS            0
+#define RK_AUDIO_FAILURE            -1
+
+typedef void *HDC;
 #else
 #error  "Not Support System OS"
 #endif
@@ -144,10 +161,13 @@ typedef void *HDC;
 #include "mp3_hal.h"
 #include "codec/decode/amr/amr_dec_hal.h"
 #include "codec/encode/amr/amr_enc_hal.h"
+
+#ifdef AUDIO_ENABLE_PLAYER
 #include "play_mp3.h"
 #include "play_pcm.h"
 #include "play_wav.h"
 #include "play_amr.h"
+#endif
 #ifdef AUDIO_DECODER_APE
 #include "play_ape.h"
 #endif
@@ -160,9 +180,11 @@ typedef void *HDC;
 #ifdef AUDIO_ENCODER_MP3
 #include "record_mp3.h"
 #endif
+#ifdef AUDIO_ENABLE_RECORDER
 #include "record_amr.h"
 #include "record_pcm.h"
 #include "record_wav.h"
+#endif
 
 #define RK_AUDIO_API_DEFAULT        __attribute((visibility("default")))
 #define RK_AUDIO_API_HIDDEN         __attribute((visibility("hidden")))

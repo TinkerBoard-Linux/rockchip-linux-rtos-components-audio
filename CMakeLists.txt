@@ -1,7 +1,11 @@
 cmake_minimum_required(VERSION 3.0.0)
 project(rkaudio)
 
+if(NOT OS_RTT)
 ADD_DEFINITIONS( -D__LINUX__)
+else()
+ADD_DEFINITIONS( -D__OS_LESS__)
+endif()
 
 SET (LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 
@@ -69,16 +73,26 @@ if(RKAUDIO_ENDECODE)
     endif()
 endif()
 
+if(NOT OS_RTT)
 ADD_LIBRARY (rkaudio SHARED ${RKAUDIO_SOURCE_FILE})
 link_libraries(rkaudio)
 link_directories(${PROJECT_BINARY_DIR}/lib/)
+endif()
 
 ADD_LIBRARY (rkaudio_static STATIC ${RKAUDIO_SOURCE_FILE})
 link_libraries(rkaudio_static)
 link_directories(${PROJECT_BINARY_DIR}/lib/)
 
+if(OS_RTT)
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mcpu=cortex-a35+crypto -mfloat-abi=hard -mfpu=neon-vfpv4 -marm -ffast-math -std=gnu99 -Wall -g -Wno-stringop-truncation")
+endif()
+
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
+
+if(NOT OS_RTT)
 install(TARGETS rkaudio
         LIBRARY DESTINATION "lib")
+endif()
 
 install(TARGETS rkaudio_static
         LIBRARY DESTINATION "lib")
@@ -87,7 +101,4 @@ set(RKAUDIO_HEADER
       ${CMAKE_CURRENT_SOURCE_DIR}/audio_server.h
 )
 install(FILES ${RKAUDIO_HEADER} DESTINATION include/)
-
-if(RKAUDIO_TEST_DEMO)
-add_subdirectory(example)
-endif()
+project(rkaudio)
