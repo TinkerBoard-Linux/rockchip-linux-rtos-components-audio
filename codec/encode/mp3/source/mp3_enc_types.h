@@ -1,5 +1,5 @@
-#ifndef TYPES_H
-#define TYPES_H
+#ifndef MP3_ENC_TYPES_H
+#define MP3_ENC_TYPES_H
 
 #include <stdio.h>
 #include <time.h>
@@ -23,7 +23,9 @@
 #define LAYER_1 3
 #define samp_per_frame  1152
 #define samp_per_frame2 576
+#ifndef PI
 #define PI              3.14159265358979
+#endif
 #define HAN_SIZE        512
 #define SBLIMIT         32
 
