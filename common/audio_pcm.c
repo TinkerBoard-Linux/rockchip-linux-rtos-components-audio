@@ -107,7 +107,11 @@ int pcm_set_config(struct pcm *pcm_dev, struct pcm_config config)
     aparams.channels = config.channels;
     aparams.sampleRate = config.rate;
     aparams.sampleBits = config.bits;
+#ifdef OS_IS_FREERTOS
     ret = audio_device_control(pcm_dev->device, RK_AUDIO_CTL_PCM_PREPARE, abuf);
+#else
+    ret = audio_device_control(pcm_dev->device, RK_AUDIO_CTL_HW_PARAMS, &aparams);
+#endif
     if (ret)
     {
         audio_free_uncache(abuf->buf);
@@ -118,7 +122,11 @@ int pcm_set_config(struct pcm *pcm_dev, struct pcm_config config)
      * do not check result value here
      **/
     audio_device_control(pcm_dev->device, RK_AUDIO_CTL_PLUGIN_PREPARE, (void *)SND_PCM_TYPE_SOFTVOL);
+#ifdef OS_IS_FREERTOS
     ret = audio_device_control(pcm_dev->device, RK_AUDIO_CTL_HW_PARAMS, &aparams);
+#else
+    ret = audio_device_control(pcm_dev->device, RK_AUDIO_CTL_PCM_PREPARE, abuf);
+#endif
     if (ret)
     {
         audio_free_uncache(abuf->buf);
