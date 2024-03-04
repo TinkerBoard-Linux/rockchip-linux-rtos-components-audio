@@ -17,6 +17,7 @@ LIBS_RELEASE := libaudio_release.a
 DIRS_IGNORE := ./plugins/effect%
 DIRS_IGNORE += ./plugins/soundtouch%
 DIRS_IGNORE += ./codec%
+DIRS_IGNORE += ./third-party%
 AUDIO_SERVER_PATH := $(shell pwd)
 INCLUDE_PATHS += -I"$(AUDIO_SERVER_PATH)/common" \
 	-I"$(AUDIO_SERVER_PATH)/misc" \
